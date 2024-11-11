@@ -91,7 +91,7 @@ void Population::Update(const float deltaTime, const Vector2 enemyPos)
 	DEBUGRENDERER2D->DrawCircle(m_Bots[m_BotInfoIndex]->GetPosition(), 5, { 1,0,0 }, 0.1f);
 
 	// Check if all bods are dead
-	if (m_DeadCounter == m_Size)
+	if (m_DeadCounter == m_Size) //TODO: i think this runs multiple times per round instead of once...
 	{
 		++m_Generation;
 
@@ -131,6 +131,8 @@ void Population::Update(const float deltaTime, const Vector2 enemyPos)
 		else
 			++m_DeadCounter;
 	}
+
+	NormalizeFitness();
 }
 
 void Population::UpdateSUS()
@@ -271,6 +273,16 @@ void Population::UpdateImGui()
 		ImGui::Indent();
 		ImGui::Text("%.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
 		ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
+		ImGui::Text("%.1f Time Speed", TIMER->GetSpeed());
+		if (ImGui::Button("+ Speed"))
+		{
+			TIMER->SetSpeed(TIMER->GetSpeed() + 1.);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("- Speed"))
+		{
+			TIMER->SetSpeed(TIMER->GetSpeed() - 1.);
+		}
 		ImGui::Unindent();
 
 		ImGui::Spacing();
@@ -340,6 +352,27 @@ struct SumOperatorsQBot
 	}
 };
 
+void Population::NormalizeFitness() const
+{
+	// TODO: possibly save these values in this class might be usefull and then we only calculate it once
+	float minFit{ FLT_MAX }; // Coult also just be set to first bot's fit, but oh well
+	float maxFit{ FLT_MIN };
+	for (QBot* bot : m_Bots)
+	{
+		float fit = bot->GetRawFitness();
+		if (fit < minFit)
+			minFit = fit;
+		if (fit > maxFit)
+			maxFit = fit;
+	}
+
+	for (QBot* bot : m_Bots)
+	{
+		float firNorm = (bot->GetRawFitness() - minFit) / (maxFit - minFit);
+		bot->SetNormalizedFitness(firNorm);
+	}
+}
+
 //https://en.cppreference.com/w/cpp/algorithm/reduce
 float Population::CalculateFitnessSum() const
 {
@@ -390,6 +423,7 @@ FMatrix* Population::SelectParentFPS(const float sum) const
 }
 
 //Stochastic universal sampling
+#pragma optimize("", off)
 void Population::SelectParentSUS(const float sum) const
 {
 	std::vector<FMatrix*> matingPool{};
@@ -398,7 +432,7 @@ void Population::SelectParentSUS(const float sum) const
 	const auto maxFit{ sum };
 	constexpr auto num{ 25 }; //Number of offspring to keep
 	const auto dist = maxFit / static_cast<float>(num);
-	const auto start = randomFloat(0, dist);
+	const auto start = randomFloat(0, dist); // TODO: what is dist is lower then 0?
 	for (size_t i{ 0 }; i < num; ++i)
 	{
 		pointers.push_back(start + static_cast<float>(i) * dist);
@@ -410,6 +444,7 @@ void Population::SelectParentSUS(const float sum) const
 		while (CalculateFitnessSum(0, j) < pointers[i])
 		{
 			j++;
+			//TODO: maybe add if(j == pointers.size()) return;
 		}
 		matingPool.push_back(m_Bots[j]->GetBotBrain());
 	}
@@ -417,3 +452,4 @@ void Population::SelectParentSUS(const float sum) const
 	for (size_t i{ 0 }; i < m_Bots.size(); ++i)
 		m_Bots[i]->SetBotBrain(matingPool[i % matingPool.size()]);
 }
+#pragma optimize("", on)

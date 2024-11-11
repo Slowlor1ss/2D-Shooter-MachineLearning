@@ -22,6 +22,7 @@ public:
 	void Render(float deltaTime) const;
 
 private:
+	void NormalizeFitness() const;
 	float CalculateFitnessSum() const;
 	float CalculateFitnessSum(unsigned int from, unsigned int to) const;
 	Elite::FMatrix* SelectParentFPS(float sum) const;

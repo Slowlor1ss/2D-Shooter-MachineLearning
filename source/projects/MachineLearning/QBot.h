@@ -34,7 +34,10 @@ public:
 	bool IsAlive() const;
 	void Reset();
 	//Fitness from last death
-	float GetFitness() const { return m_Fitness; }
+	float GetRawFitness() const { return m_Fitness; }
+
+	float GetFitness() const { return m_FitnessNormalized; }
+	void SetNormalizedFitness(float fitness) { m_FitnessNormalized = fitness; }
 	void PrintInfo() const;
 
 	void MutateMatrix(float mutationRate, float mutationAmplitude) const;
@@ -56,15 +59,15 @@ public:
 
 	bool operator<(const QBot& other) const
 	{
-		return m_Fitness < other.m_Fitness;
+		return m_FitnessNormalized < other.m_FitnessNormalized;
 	}
 	float operator+(const QBot& other) const
 	{
-		return m_Fitness + other.m_Fitness;
+		return m_FitnessNormalized + other.m_FitnessNormalized;
 	}
 	static float sum(const float left, const QBot* other)
 	{
-		return left + other->m_Fitness;
+		return left + other->m_FitnessNormalized;
 	}
 
 
@@ -99,7 +102,9 @@ private:
 	int m_FoodEaten{};
 	int m_WallsHit{};
 	int m_EnemiesHit{};
+	int m_EnemiesMisses{};
 	float m_Fitness{};
+	float m_FitnessNormalized{};
 	float m_DistanceEnemyAtDeath{};
 
 	vector<Food*> m_Visible;

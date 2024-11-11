@@ -115,7 +115,7 @@ void QBot::Update(vector<Food*>& foodList, const Vector2 enemyPos, const float d
 	if (SettingsRL::m_TrainMoveToItems)
 		UpdateFood(foodList, dir, angleStep);
 
-	if (SettingsRL::m_TrainNavigation)
+	if (SettingsRL::m_TrainNavigation) //TODO: add spawn protection
 		UpdateNavigation(dir, angleStep, speedStep, deltaTime);
 
 	if (SettingsRL::m_TrainShooting)
@@ -189,6 +189,7 @@ void QBot::UpdateBot(Vector2 enemyPos, const Vector2 dir, const float deltaTime)
 				}
 				else{
 					Reinforcement(m_NegativeQSmall, m_MemorySize);
+					++m_EnemiesMisses;
 					//cout << "Missed enemy";
 				}
 				DEBUGRENDERER2D->DrawDirection(GetPosition(), dir, 1000, { 1,0,0 });
@@ -277,10 +278,12 @@ void QBot::UpdateNavigation(const Vector2& dir, const float& angleStep, const fl
 		}
 		//hits a wall
 		if (dist < 0.5f + m_Radius) {
-
-			++m_WallsHit;
-			m_Health -= 10.0f * deltaTime;
-			Reinforcement(m_NegativeQSmall, 50);
+			if ((m_Age - deltaTime) > deltaTime) // Add some spawn protection for the first frame
+			{
+				++m_WallsHit;
+				m_Health -= 10.0f * deltaTime;
+				Reinforcement(m_NegativeQSmall, 50);
+			}
 			break;
 		}
 	}
@@ -471,6 +474,7 @@ void QBot::Reset()
 	m_Alive = true;
 	m_FoodEaten = 0;
 	m_EnemiesHit = 0;
+	m_EnemiesMisses = 0;
 
 	m_Age = 0;
 	SetPosition(m_StartLocation);
@@ -483,15 +487,25 @@ void QBot::Reset()
 
 void QBot::CalculateFitness()
 {
-	m_Fitness = m_FoodEaten + m_Age + m_EnemiesHit /*+ ((10000 - m_WallsHit)/ 1000.f)*/;
+	// TODO: add misses and distance from enemy (Possibly add optimal distance?)
+	//			Add static bools so we calcualte fitness based on what we're training
+	if constexpr (SettingsRL::m_TrainNavigation && SettingsRL::m_TrainShooting)
+		m_Fitness = m_FoodEaten + m_Age + m_EnemiesHit - m_EnemiesMisses /*+ ((10000 - m_WallsHit)/ 1000.f)*/;
+	else if constexpr (SettingsRL::m_TrainShooting && !SettingsRL::m_TrainNavigation)
+		m_Fitness = m_FoodEaten + m_Age + m_EnemiesHit - m_EnemiesMisses;
+	else if constexpr (SettingsRL::m_TrainNavigation && !SettingsRL::m_TrainShooting)
+		m_Fitness = m_FoodEaten + m_Age - m_WallsHit; // Maybe walls hit is not that good to use like this possibly need to add a weight?
 }
 
 void QBot::PrintInfo() const
 {
 	cout << "Died after " << std::setprecision(4) << m_Age << " seconds.\n";
+	if (SettingsRL::m_TrainMoveToItems) cout << "Fitness " << std::setprecision(4) << m_Fitness << "\n";
+	if (SettingsRL::m_TrainMoveToItems) cout << "Fitness Norm " << std::setprecision(4) << m_FitnessNormalized << "\n";
 	if (SettingsRL::m_TrainMoveToItems) cout << "Ate " << std::setprecision(4) << m_FoodEaten << " food.\n";
 	if (SettingsRL::m_TrainNavigation) cout << "Hit " << std::setprecision(4) << m_WallsHit << " walls.\n";
 	if (SettingsRL::m_TrainShooting) cout << "Hit " << std::setprecision(4) << m_EnemiesHit << " enemies.\n";
+	if (SettingsRL::m_TrainShooting) cout << "Missed " << std::setprecision(4) << m_EnemiesMisses << " enemies.\n";
 }
 
 void QBot::MutateMatrix(const float mutationRate, const float mutationAmplitude) const

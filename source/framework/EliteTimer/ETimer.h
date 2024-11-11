@@ -26,7 +26,10 @@ namespace Elite
 		unsigned int GetFPS() const { return m_FPS; };
 		float GetElapsed() const { return m_ElapsedTime; };
 		float GetTotal() const { return m_TotalTime; };
+		float GetSpeed() const { return m_Speed; };
 		bool IsRunning() const { return !m_IsStopped; };
+
+		void SetSpeed(float speed) { m_Speed = speed; }
 		
 		void ForceElapsedUpperbound(bool force, float upperBound = 0.03f)
 		{ m_ForceElapsedUpperBound = force; m_ElapsedUpperBound = upperBound; }
@@ -36,6 +39,7 @@ namespace Elite
 		float m_TotalTime = 0.0f;
 		float m_ElapsedTime = 0.0f;
 		float m_SecondsPerCount = 0.0f;
+		float m_Speed = 1.0f;
 
 		float m_ElapsedUpperBound = 0.03f;
 		bool m_ForceElapsedUpperBound = false;
