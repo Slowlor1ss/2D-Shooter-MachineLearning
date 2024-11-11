@@ -292,8 +292,15 @@ void Population::UpdateImGui()
 
 		ImGui::Text("Agent Info");
 		ImGui::SliderInt("Agent Index", &m_BotInfoIndex, 0, m_Bots.size()-1);
-		ImGui::Checkbox("Show all food?", &m_ShowAllFood);
-		ImGui::Text("Food eaten: %.1f", m_Bots[m_BotInfoIndex]->GetFoodEaten());
+		if constexpr (SettingsRL::m_TrainMoveToItems)
+		{
+			ImGui::Checkbox("Show all food?", &m_ShowAllFood);
+			ImGui::Text("Food eaten: %i", m_Bots[m_BotInfoIndex]->GetFoodEaten());
+		}
+		ImGui::Text("Walls Hit: %i", m_Bots[m_BotInfoIndex]->GetWallsHit());
+		ImGui::Text("Hits: %i", m_Bots[m_BotInfoIndex]->GetHits());
+		ImGui::Text("Misses: %i", m_Bots[m_BotInfoIndex]->GetMisses());
+		ImGui::Text("Health: %.2f", m_Bots[m_BotInfoIndex]->GetHealth());
 		ImGui::Text("Survive Time: %.1f", m_Bots[m_BotInfoIndex]->GetAge() );
 
 		//End

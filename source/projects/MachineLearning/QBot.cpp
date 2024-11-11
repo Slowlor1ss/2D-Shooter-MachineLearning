@@ -124,8 +124,9 @@ void QBot::Update(vector<Food*>& foodList, const Vector2 enemyPos, const float d
 	//Updates the bot / Makes the bot move, rotate, and shoot according to what it decides to do
 	UpdateBot(enemyPos, dir, deltaTime);
 
-	//Make the bot lose 10 health per second
-	m_Health -= 10 * deltaTime;
+	//Make the bot lose 0.1 health per second
+	m_Health -= 0.1f * deltaTime;
+
 	if (m_Health < 0) {
 		// update the bot brain, they did something bad
 		if constexpr (!SettingsRL::m_TrainShooting)
@@ -182,14 +183,15 @@ void QBot::UpdateBot(Vector2 enemyPos, const Vector2 dir, const float deltaTime)
 			{
 				if (!m_IsEnemyBehindWall && AreEqual(AngleBetween(dir, enemyPos - location), 0.f, 0.05f))
 				{
-					Reinforcement(m_PositiveQBig * 10, m_MemorySize);
+					Reinforcement(m_PositiveQBig /** 10*/, m_MemorySize);
 					++m_EnemiesHit;
-					m_Health += 1;
+					m_Health += 1.f;
 					cout << "Hit enemy\n";
 				}
 				else{
 					Reinforcement(m_NegativeQSmall, m_MemorySize);
 					++m_EnemiesMisses;
+					m_Health -= 1.f;
 					//cout << "Missed enemy";
 				}
 				DEBUGRENDERER2D->DrawDirection(GetPosition(), dir, 1000, { 1,0,0 });
@@ -281,46 +283,55 @@ void QBot::UpdateNavigation(const Vector2& dir, const float& angleStep, const fl
 			if ((m_Age - deltaTime) > deltaTime) // Add some spawn protection for the first frame
 			{
 				++m_WallsHit;
-				m_Health -= 10.0f * deltaTime;
+				m_Health -= .5f * deltaTime;
 				Reinforcement(m_NegativeQSmall, 50);
 			}
 			break;
 		}
 	}
 
-
-
-
-	if (m_WallCheckCounter > 0) {
-		--m_WallCheckCounter;
-	}
-
-	if (m_WallCheckCounter == 0)
+	// TODO pass these variables from Population::Population
+	constexpr float worldSize = 100;
+	constexpr float blockSize{ 5.0f };
+	constexpr float hBlockSize{ blockSize / 2.0f };
+	if ((location.x < -worldSize - blockSize || location.x > worldSize + hBlockSize)
+		|| (location.y < -worldSize - blockSize || location.y > worldSize + hBlockSize))
 	{
-		if (NoWallsInFov)
-			Reinforcement(m_PositiveQ, 50);
-		else if (StayedAwayFromWalls || NoWallsInFov)
-			Reinforcement(m_PositiveQSmall, 50);
-
-		m_WallCheckCounter = 100;
+		m_Health -= 5.f * deltaTime;
+		m_AliveColor = { 0.f, 0.f, 1.f };
 	}
 
-	if (m_MoveAroundCounter > 0) {
-		--m_MoveAroundCounter;
-	}
 
-	//TODO: make it framerate independent
-	//encourage exploring the whole map and nor rotation around one point
-	if (m_MoveAroundCounter == 0) {
-		if (GetPosition().DistanceSquared(m_prevPos) < Square(30))
-		{
-			Reinforcement(m_NegativeQ, m_MemorySize);
-			//m_Health -= 10.f;
-		}
+	//if (m_WallCheckCounter > 0) {
+	//	--m_WallCheckCounter;
+	//}
 
-		m_prevPos = { GetPosition() };
-		m_MoveAroundCounter = 2000;
-	}
+	//if (m_WallCheckCounter == 0)
+	//{
+	//	if (NoWallsInFov)
+	//		Reinforcement(m_PositiveQ, 50);
+	//	else if (StayedAwayFromWalls || NoWallsInFov)
+	//		Reinforcement(m_PositiveQSmall, 50);
+
+	//	m_WallCheckCounter = 100;
+	//}
+
+	//if (m_MoveAroundCounter > 0) {
+	//	--m_MoveAroundCounter;
+	//}
+
+	////TODO: make it framerate independent
+	////encourage exploring the whole map and nor rotation around one point
+	//if (m_MoveAroundCounter == 0) {
+	//	if (GetPosition().DistanceSquared(m_prevPos) < Square(30))
+	//	{
+	//		Reinforcement(m_NegativeQSmall, m_MemorySize);
+	//		//m_Health -= 10.f;
+	//	}
+
+	//	m_prevPos = { GetPosition() };
+	//	m_MoveAroundCounter = 2000;
+	//}
 }
 
 void QBot::UpdateFood(std::vector<Food*>& foodList, const Vector2& dir, const float& angleStep)
@@ -390,6 +401,13 @@ void QBot::UpdateFood(std::vector<Food*>& foodList, const Vector2& dir, const fl
 }
 
 void QBot::Render(float deltaTime) {
+	Color color = m_DeadColor;
+	if (m_Alive) {
+		color = m_AliveColor;
+	}
+	SetBodyColor(color);
+	//BaseAgent::Render(deltaTime);
+
 	const Vector2& location = GetPosition(); //create alias for get position
 
 	//Elite::Vector2 dir(cos(m_Angle), sin(m_Angle));
@@ -475,9 +493,12 @@ void QBot::Reset()
 	m_FoodEaten = 0;
 	m_EnemiesHit = 0;
 	m_EnemiesMisses = 0;
+	m_WallsHit = 0;
 
 	m_Age = 0;
 	SetPosition(m_StartLocation);
+
+	m_AliveColor = Color(0, 0.6f, 0.4f);
 
 
 	//float startx = Elite::randomFloat(-50.0f, 50.0f);
@@ -490,7 +511,7 @@ void QBot::CalculateFitness()
 	// TODO: add misses and distance from enemy (Possibly add optimal distance?)
 	//			Add static bools so we calcualte fitness based on what we're training
 	if constexpr (SettingsRL::m_TrainNavigation && SettingsRL::m_TrainShooting)
-		m_Fitness = m_FoodEaten + m_Age + m_EnemiesHit - m_EnemiesMisses /*+ ((10000 - m_WallsHit)/ 1000.f)*/;
+		m_Fitness = m_FoodEaten + m_Age + m_EnemiesHit - m_EnemiesMisses - m_WallsHit /*+ ((10000 - m_WallsHit)/ 1000.f)*/;
 	else if constexpr (SettingsRL::m_TrainShooting && !SettingsRL::m_TrainNavigation)
 		m_Fitness = m_FoodEaten + m_Age + m_EnemiesHit - m_EnemiesMisses;
 	else if constexpr (SettingsRL::m_TrainNavigation && !SettingsRL::m_TrainShooting)
@@ -500,8 +521,8 @@ void QBot::CalculateFitness()
 void QBot::PrintInfo() const
 {
 	cout << "Died after " << std::setprecision(4) << m_Age << " seconds.\n";
-	if (SettingsRL::m_TrainMoveToItems) cout << "Fitness " << std::setprecision(4) << m_Fitness << "\n";
-	if (SettingsRL::m_TrainMoveToItems) cout << "Fitness Norm " << std::setprecision(4) << m_FitnessNormalized << "\n";
+	cout << "Fitness " << std::setprecision(4) << m_Fitness << "\n";
+	cout << "Fitness Norm " << std::setprecision(4) << m_FitnessNormalized << "\n";
 	if (SettingsRL::m_TrainMoveToItems) cout << "Ate " << std::setprecision(4) << m_FoodEaten << " food.\n";
 	if (SettingsRL::m_TrainNavigation) cout << "Hit " << std::setprecision(4) << m_WallsHit << " walls.\n";
 	if (SettingsRL::m_TrainShooting) cout << "Hit " << std::setprecision(4) << m_EnemiesHit << " enemies.\n";

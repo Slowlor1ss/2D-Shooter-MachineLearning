@@ -18,7 +18,7 @@ DynamicQLearning::DynamicQLearning(int nrOfFood, int memorySize, int nrOfInputs,
 		m_Enemy = new SteeringAgent(1.5f, { 1,0,0,0.5f });
 		m_Wander = new Wander();
 		m_Enemy->SetSteeringBehavior(m_Wander);
-		m_Enemy->SetPosition({0, 50});
+		m_Enemy->SetPosition({ 0, 50 });
 	}
 }
 
@@ -48,4 +48,7 @@ void DynamicQLearning::Render(const float deltaTime) const
 	m_pPopulation->Render(deltaTime);
 	if (SettingsRL::m_TrainShooting)
 		m_Enemy->Render(deltaTime);
+
+	DEBUGRENDERER2D->DrawSolidCircle({ 105, 105 }, 10, { 0,0 }, { 0,0,1 });
+	DEBUGRENDERER2D->DrawSolidCircle({ 0, 0 }, 10, { 0,0 }, { 0,0,1 });
 }

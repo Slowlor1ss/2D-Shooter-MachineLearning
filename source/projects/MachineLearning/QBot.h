@@ -41,6 +41,8 @@ public:
 	void PrintInfo() const;
 
 	void MutateMatrix(float mutationRate, float mutationAmplitude) const;
+	// The factor detrmines how we will adjust the weights +pos good -neg bad
+	// The memory controls how far back in time we will go when adjusting weights based on past decisions
 	void Reinforcement(float factor, int memory) const;
 	float CalculateInverseDistance(float realDist) const;
 	void UniformCrossover(QBot* otherBrain);
@@ -49,6 +51,10 @@ public:
 	FMatrix GetRawBotBrain() { return m_BotBrain; }
 	float GetAge() const { return m_Age; }
 	int GetFoodEaten() const { return m_FoodEaten; }
+	int GetWallsHit() const { return m_WallsHit; }
+	int GetHits() const { return m_EnemiesHit; }
+	int GetMisses() const { return m_EnemiesMisses; }
+	float GetHealth() const { return m_Health; }
 
 	//void SetBotBrain(const FMatrix& brain) { m_BotBrain.Set(brain); }
 	void SetBotBrain(const FMatrix* brain) { m_BotBrain.Set(brain); }
