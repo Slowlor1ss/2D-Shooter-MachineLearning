@@ -21,6 +21,7 @@ public:
 	SteeringAgent() = default;
 	SteeringAgent(float radius) : BaseAgent(radius) {};
 	SteeringAgent(float radius, Elite::Color color) : BaseAgent(radius, color) {};
+	SteeringAgent(float radius, Elite::Color color, Elite::CollisionCategories collisionCategory) : BaseAgent(radius, color, collisionCategory) {};
 	virtual ~SteeringAgent() = default;
 
 	//--- Agent Functions ---

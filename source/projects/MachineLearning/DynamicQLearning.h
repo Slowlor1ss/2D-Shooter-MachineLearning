@@ -25,7 +25,8 @@ public:
 private:
 
 	Population* m_pPopulation;
-	SteeringAgent* m_Enemy;
+	static constexpr int m_EnemiesSize = 4;
+	std::vector<SteeringAgent*> m_Enemies;
 	Wander* m_Wander;
 
 	//--Level--

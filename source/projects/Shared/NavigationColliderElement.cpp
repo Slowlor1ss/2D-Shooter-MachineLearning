@@ -15,7 +15,7 @@ NavigationColliderElement::NavigationColliderElement(const Elite::Vector2& posit
 	//Create Rigidbody
 	const Elite::RigidBodyDefine define = Elite::RigidBodyDefine(0.01f, 0.1f, Elite::eStatic, false);
 	const Transform transform = Transform(position, Elite::ZeroVector2);
-	m_pRigidBody = new RigidBody(define, transform, PhysicsFlags::NavigationCollider);
+	m_pRigidBody = new RigidBody(define, transform, PhysicsFlags::NavigationCollider, false);
 	m_pRigidBody->SetMass(FLT_MAX);
 
 	//Add shape
@@ -23,6 +23,8 @@ NavigationColliderElement::NavigationColliderElement(const Elite::Vector2& posit
 	shape.width = width;
 	shape.height = height;
 	m_pRigidBody->AddShape(&shape);
+
+	m_pRigidBody->AddCollisionFiltering(Elite::WALL_CATEGORY);
 }
 
 NavigationColliderElement::~NavigationColliderElement()
@@ -72,7 +74,7 @@ Elite::Vector2 NavigationColliderElement::GetClosestPoint(const Elite::Vector2& 
 		return { m_Left,pos.y };
 	}
 
-	//std::cerr << "failed all checks in GetClosestPoint function in" << __FILE__ << '\n';
+	std::cerr << "failed all checks in GetClosestPoint function in" << __FILE__ << '\n';
 	return {};
 }
 

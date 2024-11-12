@@ -7,6 +7,8 @@
 #include "projects/Shared/BaseAgent.h"
 #include "projects/Shared/NavigationColliderElement.h"
 
+class SteeringAgent;
+
 class QBot final : public BaseAgent
 {
 public:
@@ -28,8 +30,8 @@ public:
 	QBot& operator=(const QBot&) = delete;
 	QBot& operator=(QBot&&) noexcept = delete;
 
-	virtual void Update(vector<Food*>& foodList, Vector2 enemyPos, float deltaTime);
-	virtual void Render(float deltaTime, const Vector2 enemyPos);
+	virtual void Update(vector<Food*>& foodList, const std::vector<SteeringAgent*>& enemies, float deltaTime);
+	virtual void Render(float deltaTime, const std::vector<SteeringAgent*>& enemies);
 
 	bool IsAlive() const;
 	void Reset();
@@ -82,10 +84,10 @@ private:
 
 	void CalculateFitness();
 
-	void UpdateBot(Vector2 enemyPos, Vector2 dir, float deltaTime);
+	void UpdateBot(const std::vector<SteeringAgent*>& enemies, Vector2 dir, float deltaTime);
 	void UpdateNavigation(const Vector2& dir, const float& angleStep, const float& speedStep, float deltaTime);
 	void UpdateFood(std::vector<Food*>& foodList, const Vector2& dir, const float& angleStep);
-	void UpdateEnemy(Vector2 enemyPos, Vector2 dir, float angleStep, float speedStep);
+	void UpdateEnemy(const std::vector<SteeringAgent*>& enemies, Vector2 dir, float angleStep, float speedStep);
 
 
 	std::vector<NavigationColliderElement*> m_vNavigationColliders;
@@ -117,7 +119,7 @@ private:
 
 	float m_Fitness{};
 	float m_FitnessNormalized{};
-	float m_DistanceEnemyAtDeath{};
+	float m_DistanceClosestEnemyAtDeathSqrd{};
 
 	vector<Food*> m_Visible;
 

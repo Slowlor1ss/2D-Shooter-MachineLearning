@@ -4,8 +4,10 @@
 #ifdef USE_BOX2D
 #include "Box2D/Collision/Shapes/b2CircleShape.h"
 #include "Box2D/Collision/Shapes/b2PolygonShape.h"
+//#include "box2d/b2_fixture.h>"// Include Box2D fixture for collision filtering
 
 //=== Constructors & Destructors ===
+
 template <>
 Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::RigidBodyBase(const RigidBodyDefine& define, 
 	const internalTransformType& initialTransform, PhysicsFlags userFlags, bool isBullet)
@@ -124,6 +126,43 @@ void Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::RemoveAllShapes()
 		pBody->DestroyFixture(pB2Fix);
 	}
 	m_vFixtures.clear();
+}
+
+template<>
+void Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::AddCollisionFiltering(CollisionCategories collisionCategories)
+{
+	auto pBody = static_cast<b2Body*>(m_pBody);
+	// Define collision filtering
+	b2Filter filter;
+
+	// Apply category and mask based on the userFlags
+	if (collisionCategories & WALL_CATEGORY)
+	{
+		filter.categoryBits = WALL_CATEGORY;
+		// Collide with everything
+		filter.maskBits = WALL_CATEGORY | AGENT_CATEGORY | ENEMY_CATEGORY;
+	}
+	else if (collisionCategories & AGENT_CATEGORY)
+	{
+		filter.categoryBits = AGENT_CATEGORY;
+		// Collide only with walls and enemies
+		filter.maskBits = WALL_CATEGORY | ENEMY_CATEGORY;
+	}
+	else if (collisionCategories & ENEMY_CATEGORY)
+	{
+		filter.categoryBits = ENEMY_CATEGORY;
+		// Collide with everything for now
+		filter.maskBits = WALL_CATEGORY | AGENT_CATEGORY | ENEMY_CATEGORY;
+	}
+
+	if (m_vFixtures.empty())
+		assert(!"Cannot add Collision filtering if there no fixture to add it too");
+
+	// Apply the filter to the body’s fixtures TODO: maybe use m_vFixtures
+	for (b2Fixture* f = pBody->GetFixtureList(); f; f = f->GetNext())
+	{
+		f->SetFilterData(filter);
+	}
 }
 
 template <>

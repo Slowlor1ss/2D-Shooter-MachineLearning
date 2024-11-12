@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "QBot.h"
 #include "Food.h"
+#include "projects/Movement/SteeringBehaviors/SteeringAgent.h"
 
 // for setting the precision in cout for floating points.
 #include <iomanip>
@@ -16,7 +17,7 @@ QBot::QBot(float x,
            int nrInputs,
            int nrOutputs,
            bool useBias,
-           float radius) : BaseAgent(radius),
+	float radius) : BaseAgent(radius, { 0.9f, 0.7f, 0.7f, 1.f }, Elite::AGENT_CATEGORY),
    m_Radius(radius), m_StartLocation(x, y), m_Angle(angle), m_FOV(fov),
    //m_AliveColor(randomFloat(), randomFloat(), randomFloat()),
    m_SFOV(sFov),
@@ -96,7 +97,7 @@ QBot::~QBot()
 	m_StateMatrixMemoryArr = nullptr;
 }
 
-void QBot::Update(vector<Food*>& foodList, const Vector2 enemyPos, const float deltaTime)
+void QBot::Update(vector<Food*>& foodList, const std::vector<SteeringAgent*>& enemies, const float deltaTime)
 {
 	currentIndex = (currentIndex + 1) % m_MemorySize;
 	if (!m_Alive) {
@@ -120,10 +121,10 @@ void QBot::Update(vector<Food*>& foodList, const Vector2 enemyPos, const float d
 		UpdateNavigation(dir, angleStep, speedStep, deltaTime);
 
 	if (SettingsRL::m_TrainShooting)
-		UpdateEnemy(enemyPos, dir, angleStep, speedStep);
+		UpdateEnemy(enemies, dir, angleStep, speedStep);
 
 	//Updates the bot / Makes the bot move, rotate, and shoot according to what it decides to do
-	UpdateBot(enemyPos, dir, deltaTime);
+	UpdateBot(enemies, dir, deltaTime);
 
 	//Make the bot lose 0.1 health per second
 	m_Health -= 0.1f * deltaTime;
@@ -133,12 +134,21 @@ void QBot::Update(vector<Food*>& foodList, const Vector2 enemyPos, const float d
 		if constexpr (!SettingsRL::m_TrainShooting)
 			Reinforcement(m_NegativeQBig, m_MemorySize);
 		m_Alive = false;
-		m_DistanceEnemyAtDeath = GetPosition().DistanceSquared(enemyPos);
+		// TODO: could probably do closest enemy?
+		// TODO: currently unused
+		float closestPosSqrd{ FLT_MAX };
+		for (SteeringAgent* enemy : enemies)
+		{
+			float distSqrd = GetPosition().DistanceSquared(enemy->GetPosition());
+			if (closestPosSqrd > distSqrd)
+				closestPosSqrd = distSqrd;
+		}
+		m_DistanceClosestEnemyAtDeathSqrd = closestPosSqrd;
 		CalculateFitness();
 	}
 }
 
-void QBot::UpdateBot(Vector2 enemyPos, const Vector2 dir, const float deltaTime)
+void QBot::UpdateBot(const std::vector<SteeringAgent*>& enemies, const Vector2 dir, const float deltaTime)
 {
 	//m_ActionMatrixMemoryArr[currentIndex].Print();
 	//m_BotBrain.Print();
@@ -174,10 +184,6 @@ void QBot::UpdateBot(Vector2 enemyPos, const Vector2 dir, const float deltaTime)
 
 	if (SettingsRL::m_TrainShooting)
 	{
-		float distFromEnemySqr = GetPosition().DistanceSquared(enemyPos);
-		// TODO: maybe put code in location of m_IsEnemyBehindWall but look in to AngleBetween differences see which one is right
-		bool isLookingAtEnemy = AreEqual(AngleBetween(dir, enemyPos - location), 0.f, 0.05f) && !m_IsEnemyBehindWall;
-
 		//TODO: Make shoot cooldown based on deltatime
 		if (m_ShootCounter > 0) {
 			--m_ShootCounter;
@@ -186,92 +192,106 @@ void QBot::UpdateBot(Vector2 enemyPos, const Vector2 dir, const float deltaTime)
 			m_SeenCounter -= deltaTime;
 		}
 
-		if (m_SeenCounter <= 0)
+		for (const SteeringAgent* enemy : enemies)
 		{
-			// Looking at enemy
-			if (distFromEnemySqr < Elite::Square(m_MaxDistance))
+			Vector2 enemyPos = enemy->GetPosition();
+			float distFromEnemySqr = GetPosition().DistanceSquared(enemyPos);
+			// TODO: maybe put code in location of m_IsEnemyBehindWall but look in to AngleBetween differences see which one is right
+			bool isLookingAtEnemy = AreEqual(AngleBetween(dir, enemyPos - location), 0.f, 0.05f) && !m_IsEnemyBehindWall;
+
+			if (m_SeenCounter <= 0)
 			{
+				// Looking at enemy
+				if (distFromEnemySqr < Elite::Square(m_MaxDistance))
+				{
+					if (isLookingAtEnemy)
+					{
+						Reinforcement(m_PositiveQ /** 10*/, m_MemorySize);
+						++m_EnemiesSeen;
+						m_Health += 0.01f;
+						//TODO: pass a parameter selected agent trough update so we can print messages only for the selected agent
+						cout << "Saw enemy\n";
+						m_SeenCounter = 1;
+					}
+					else
+					{
+						// Empty for now...
+					}
+					DEBUGRENDERER2D->DrawDirection(GetPosition(), dir, 1000, { 1,0,0 });
+				}
+			}
+
+			if (m_SShoot[cShoot] && m_ShootCounter <= 0)
+			{
+				//only count a hit when the enemy was visible and it was a hit
 				if (isLookingAtEnemy)
 				{
-					Reinforcement(m_PositiveQ /** 10*/, m_MemorySize);
-					++m_EnemiesSeen;
-					m_Health += 0.01f;
-					//TODO: pass a parameter selected agent trough update so we can print messages only for the selected agent
-					cout << "Saw enemy\n";
-					m_SeenCounter = 1;
+					// Actually saw the enemy or random hit
+					if (distFromEnemySqr < Elite::Square(m_MaxDistance))
+					{
+						Reinforcement(m_PositiveQBig /** 10*/, m_MemorySize);
+						++m_EnemiesHit;
+					}
+					else // TODO: maybe get rid of this after all
+						Reinforcement(m_PositiveQSmall /** 10*/, m_MemorySize);
+
+					m_Health += 1.f;
+					cout << "Hit enemy\n";
 				}
 				else
 				{
-					// Empty for now...
+					Reinforcement(m_NegativeQSmall, m_MemorySize);
+					++m_EnemiesMisses;
+					m_Health -= 1.f;
+					//cout << "Missed enemy";
 				}
-				DEBUGRENDERER2D->DrawDirection(GetPosition(), dir, 1000, { 1,0,0 });
+				DEBUGRENDERER2D->DrawDirection(GetPosition(), dir, 100, { 1,0,0 });
+				m_ShootCounter = 10;
 			}
 		}
-
-		if (m_SShoot[cShoot] && m_ShootCounter <= 0 )
-		{
-			//only count a hit when the enemy was visible and it was a hit
-			if (isLookingAtEnemy)
-			{
-				// Actually saw the enemy or random hit
-				if (distFromEnemySqr < Elite::Square(m_MaxDistance))
-					Reinforcement(m_PositiveQBig /** 10*/, m_MemorySize);
-				else
-					Reinforcement(m_PositiveQSmall /** 10*/, m_MemorySize);
-
-				++m_EnemiesHit;
-				m_Health += 1.f;
-				cout << "Hit enemy\n";
-			}
-			else
-			{
-				Reinforcement(m_NegativeQSmall, m_MemorySize);
-				++m_EnemiesMisses;
-				m_Health -= 1.f;
-				//cout << "Missed enemy";
-			}
-			DEBUGRENDERER2D->DrawDirection(GetPosition(), dir, 100, { 1,0,0 });
-			m_ShootCounter = 10;
-		}
-
 	}
 }
 
-void QBot::UpdateEnemy(const Vector2 enemyPos, const Vector2 dir, const float angleStep, const float speedStep)
+void QBot::UpdateEnemy(const std::vector<SteeringAgent*>& enemies, const Vector2 dir, const float angleStep, const float speedStep)
 {
 	const Vector2& location = GetPosition(); //create alias for get position
 
-	const Vector2& enemyLoc{ enemyPos };
-	Vector2 enemyVector = enemyLoc - (location - dir * 10);
-	const float dist = (enemyLoc - location).Magnitude();
-	if (dist > m_MaxDistance) {
-		return;
-	}
-	enemyVector *= 1 / dist;
-
-
-	const float angle = AngleBetween(dir, enemyVector);
-	if (angle > -m_FOV / 2 && angle < m_FOV / 2) {
-		m_IsEnemyBehindWall = false;
-		// First 4 should be outside walls and out shot is pretty long so we skip them (Probably should do this in a better way)
-		for (size_t i{ 4 }; i < m_vNavigationColliders.size(); ++i)
-		{
-			if (m_vNavigationColliders[i]->Intersection(location, enemyLoc))
-			{
-				m_IsEnemyBehindWall = true;
-				break;
-			}
-		}
-		if (m_IsEnemyBehindWall)
+	for (const SteeringAgent* enemy : enemies)
+	{
+		const Vector2 enemyLoc{ enemy->GetPosition() };
+		Vector2 enemyVector = enemyLoc - (location - dir * 10);
+		const float dist = (enemyLoc - location).Magnitude();
+		if (dist > m_MaxDistance) {
 			return;
+		}
+		enemyVector *= 1 / dist;
 
-		int index = static_cast<int>((angle + m_FOV / 2) / angleStep);
-		int accelerationIndex = static_cast<int>(m_NrOfMovementInputs * (2 / 3.f) + ((angle + m_FOV / 2) / speedStep));
-		float invDist = CalculateInverseDistance(dist);
-		float currentDist = m_StateMatrixMemoryArr[currentIndex].Get(0, index);
-		if (invDist > currentDist) {
-			m_StateMatrixMemoryArr[currentIndex].Set(0, index, invDist);
-			m_StateMatrixMemoryArr[currentIndex].Set(0, accelerationIndex, invDist);
+
+		const float angle = AngleBetween(dir, enemyVector);
+		if (angle > -m_FOV / 2 && angle < m_FOV / 2) {
+			m_IsEnemyBehindWall = false;
+			// First 4 should be outside walls and out shot is pretty long so we skip them (Probably should do this in a better way)
+			for (size_t i{ 4 }; i < m_vNavigationColliders.size(); ++i)
+			{
+				if (m_vNavigationColliders[i]->Intersection(location, enemyLoc))
+				{
+					m_IsEnemyBehindWall = true;
+					break;
+				}
+			}
+			if (m_IsEnemyBehindWall)
+				return;
+
+			// TODO: See if this still works correctly now that itsin a for loop over all enemies maybe use "add" istead of "set"?
+			//		 Probably best to have a look at how we do it with the food vector in UpdateFood
+			int index = static_cast<int>((angle + m_FOV / 2) / angleStep);
+			int accelerationIndex = static_cast<int>(m_NrOfMovementInputs * (2 / 3.f) + ((angle + m_FOV / 2) / speedStep));
+			float invDist = CalculateInverseDistance(dist);
+			float currentDist = m_StateMatrixMemoryArr[currentIndex].Get(0, index);
+			if (invDist > currentDist) {
+				m_StateMatrixMemoryArr[currentIndex].Set(0, index, invDist);
+				m_StateMatrixMemoryArr[currentIndex].Set(0, accelerationIndex, invDist);
+			}
 		}
 	}
 }
@@ -320,7 +340,7 @@ void QBot::UpdateNavigation(const Vector2& dir, const float& angleStep, const fl
 			{
 				// TODO: this wallshit value probably needs to be lower like increase by 1 every second and then also change weight
 				++m_WallsHit;
-				m_Health -= 1.f * deltaTime;
+				m_Health -= 5.f * deltaTime;
 				Reinforcement(m_NegativeQSmall, 50);
 			}
 			break;
@@ -437,7 +457,7 @@ void QBot::UpdateFood(std::vector<Food*>& foodList, const Vector2& dir, const fl
 	}
 }
 
-void QBot::Render(float deltaTime, const Vector2 enemyPos) {
+void QBot::Render(float deltaTime, const std::vector<SteeringAgent*>& enemies) {
 	Color color = m_DeadColor;
 	if (m_Alive) {
 		color = m_AliveColor;
@@ -464,12 +484,14 @@ void QBot::Render(float deltaTime, const Vector2 enemyPos) {
 	//Color dirRayColor = {0, 1, 0};
 	////DEBUGRENDERER2D->DrawSolidCircle(m_Location, 2, dir, c);
 	//if (m_Alive) {
-	float distFromEnemy = GetPosition().DistanceSquared(enemyPos);
-	// TODO: maybe put code in location of m_IsEnemyBehindWall but look in to AngleBetween differences see which one is right
-	bool isLookingAtEnemy = AreEqual(AngleBetween(dir, enemyPos - location), 0.f, 0.05f) && !m_IsEnemyBehindWall;
-	if (distFromEnemy < Elite::Square(m_MaxDistance) && isLookingAtEnemy)
-		DEBUGRENDERER2D->DrawSegment(location, location + 10 * dir, { 0, 0, 1 });
-	else 
+
+	// TODO reimplement
+	//float distFromEnemy = GetPosition().DistanceSquared(enemyPos);
+	//// TODO: maybe put code in location of m_IsEnemyBehindWall but look in to AngleBetween differences see which one is right
+	//bool isLookingAtEnemy = AreEqual(AngleBetween(dir, enemyPos - location), 0.f, 0.05f) && !m_IsEnemyBehindWall;
+	//if (distFromEnemy < Elite::Square(m_MaxDistance) && isLookingAtEnemy)
+	//	DEBUGRENDERER2D->DrawSegment(location, location + 10 * dir, { 0, 0, 1 });
+	//else 
 		DEBUGRENDERER2D->DrawSegment(location, location + 10 * dir, rayColor);
 	//	//DEBUGRENDERER2D->DrawSegment(m_Location - 10 * dir, m_Location + m_MaxDistance * leftVision, rayColor);
 	//	//DEBUGRENDERER2D->DrawSegment(m_Location - 10 * dir, m_Location + m_MaxDistance * rightVision, rayColor);

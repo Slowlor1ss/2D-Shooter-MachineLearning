@@ -12,6 +12,14 @@ namespace Elite
 	#include "EPhysicsTypes.h"
 	#include "EPhysicsShapes.h"
 
+	// Define the collision categories
+	enum CollisionCategories : uint16
+	{
+		WALL_CATEGORY = 0b0000'0001,
+		AGENT_CATEGORY	= 0b0000'0010,
+		ENEMY_CATEGORY	= 0b0000'0100,
+	};
+
 	template<typename translationType, typename orientationType>
 	class RigidBodyBase final
 	{
@@ -28,6 +36,8 @@ namespace Elite
 		//=== RigidBody Functions ===
 		void AddShape(Elite::EPhysicsShape* pShape);
 		void RemoveAllShapes();
+
+		void AddCollisionFiltering(CollisionCategories collisionCategories = Elite::AGENT_CATEGORY);
 
 		internalTransformType GetTransform();
 		void SetTransform(const internalTransformType& transform);

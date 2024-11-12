@@ -3,8 +3,8 @@
 class BaseAgent
 {
 public:
-	BaseAgent(float radius = 1.f);
-	BaseAgent(float radius, const Elite::Color& color);
+	BaseAgent(float radius = 1.f, Elite::CollisionCategories collisionCategory = Elite::AGENT_CATEGORY);
+	BaseAgent(float radius, const Elite::Color& color, Elite::CollisionCategories collisionCategory = Elite::AGENT_CATEGORY);
 	virtual ~BaseAgent();
 
 	virtual void Update(float dt);

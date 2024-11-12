@@ -26,7 +26,8 @@ void App_MachineLearning::Start()
 	//std::cout << "\n\n\n";
 
 	constexpr int nrOfFood{100 * static_cast<int>(SettingsRL::m_TrainMoveToItems) };
-
+	int orentationStates = 8;
+	int moveStates = 8;
 	m_pDynamicQEnv = new DynamicQLearning(nrOfFood, 100, 8*3+2, 5*3+2, true);
 }
 

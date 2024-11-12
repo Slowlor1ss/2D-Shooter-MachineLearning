@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "BaseAgent.h"
 
-BaseAgent::BaseAgent(float radius):	m_Radius(radius)
+BaseAgent::BaseAgent(float radius, Elite::CollisionCategories collisionCategory) : m_Radius(radius)
 {
 	//Create Rigidbody
 	const Elite::RigidBodyDefine define = Elite::RigidBodyDefine(0.01f, 0.1f, Elite::eDynamic, false);
@@ -12,9 +12,11 @@ BaseAgent::BaseAgent(float radius):	m_Radius(radius)
 	Elite::EPhysicsCircleShape shape;
 	shape.radius = m_Radius;
 	m_pRigidBody->AddShape(&shape);
+
+	m_pRigidBody->AddCollisionFiltering(collisionCategory);
 }
 
-BaseAgent::BaseAgent(float radius, const Elite::Color& color) : BaseAgent(radius)
+BaseAgent::BaseAgent(float radius, const Elite::Color& color, Elite::CollisionCategories collisionCategory) : BaseAgent(radius, collisionCategory)
 {
 	m_BodyColor = color;
 }

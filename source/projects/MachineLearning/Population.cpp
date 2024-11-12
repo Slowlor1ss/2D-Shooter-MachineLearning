@@ -53,7 +53,8 @@ Population::Population(int size, float worldSize, int nrOfFood, int memorySize, 
 	{
 		const float startAngle = randomFloat(0, static_cast<float>(M_PI) * 2);
 
-		m_Bots.push_back(new QBot(startX, startY, static_cast<float>(M_PI) * 2 /* /2*/ /* /3*/, 2 /*3*/ * static_cast<float>(M_PI), startAngle, memorySize, nrOfInputs, nrOfOutputs, bias, 1.5f));
+		m_Bots.push_back(new QBot(startX, startY, static_cast<float>(M_PI) * 2 /* /2*/ /* /3*/, 
+			2 /*3*/ * static_cast<float>(M_PI), startAngle, memorySize, nrOfInputs, nrOfOutputs, bias, 1.5f));
 		m_Bots.back()->SetObstacles(m_vNavigationColliders);
 
 		m_Foodstuff.emplace_back();
@@ -83,7 +84,7 @@ Population::~Population()
 	m_vNavigationColliders.clear();
 }
 
-void Population::Update(const float deltaTime, const Vector2 enemyPos)
+void Population::Update(const float deltaTime, const std::vector<SteeringAgent*>& enemies)
 {
 	//Update UI
 	UpdateImGui();
@@ -122,7 +123,7 @@ void Population::Update(const float deltaTime, const Vector2 enemyPos)
 		if (m_Bots[i]->IsAlive())
 		{
 			// Update bots
-			m_Bots[i]->Update(m_Foodstuff[i], enemyPos, deltaTime);
+			m_Bots[i]->Update(m_Foodstuff[i], enemies, deltaTime);
 
 			// Update food
 			for (const auto pFood : m_Foodstuff[i])
@@ -330,13 +331,13 @@ void Population::UpdateImGui()
 
 }
 
-void Population::Render(const float deltaTime, const Vector2 enemyPos) const
+void Population::Render(const float deltaTime, const std::vector<SteeringAgent*>& enemies) const
 {
 	for (size_t i{ 0 }; i < m_Bots.size(); ++i)
 	{
 		if (m_Bots[i]->IsAlive())
 		{
-			m_Bots[i]->Render(deltaTime, enemyPos);
+			m_Bots[i]->Render(deltaTime, enemies);
 
 			if (!m_ShowAllFood)
 				continue;

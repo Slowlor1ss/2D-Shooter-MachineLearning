@@ -3,6 +3,7 @@
 class NavigationColliderElement;
 class Food;
 class QBot;
+class SteeringAgent;
 
 class Population
 {
@@ -18,8 +19,8 @@ public:
 	Population& operator=(const Population&) = delete;
 	Population& operator=(Population&&) noexcept = delete;
 
-	void Update(float deltaTime, Elite::Vector2 enemyPos = {0, 0});
-	void Render(float deltaTime, const Elite::Vector2 enemyPos) const;
+	void Update(float deltaTime, const std::vector<SteeringAgent*>& enemies);
+	void Render(float deltaTime, const std::vector<SteeringAgent*>& enemies) const;
 
 private:
 	void NormalizeFitness() const;
