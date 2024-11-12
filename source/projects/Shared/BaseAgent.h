@@ -20,6 +20,8 @@ public:
 	//Get - Set
 	Elite::Vector2 GetPosition() const { return m_pRigidBody->GetPosition(); }
 	void SetPosition(const Elite::Vector2& pos) const { m_pRigidBody->SetPosition(pos); }
+	void SetPositionBullet(const Elite::Vector2& pos, float deltatime) const { m_pRigidBody->MoveBullet(pos, deltatime); }
+	void StopBullet() const { m_pRigidBody->StopBullet(); }
 
 	float GetRotation() const { return m_pRigidBody->GetRotation().x; }
 	void SetRotation(float rot) const { m_pRigidBody->SetRotation({ rot,0.f }); }

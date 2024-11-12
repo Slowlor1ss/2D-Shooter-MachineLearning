@@ -53,7 +53,8 @@ void PhysicsWorld::Simulate(float elapsedTime)
 	if (!m_pPhysicsWorld)
 		return;
 
-	const Box2DPhysicsSettings physicsSettings;
+	Box2DPhysicsSettings physicsSettings;
+	//physicsSettings.hz = 120.f;
 	const float frameTime = physicsSettings.hz > 0.0f ? 1.0f / physicsSettings.hz : float32(1.f / 60.f);
 
 	if (elapsedTime > 0.25f)

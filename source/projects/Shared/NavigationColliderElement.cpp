@@ -16,6 +16,7 @@ NavigationColliderElement::NavigationColliderElement(const Elite::Vector2& posit
 	const Elite::RigidBodyDefine define = Elite::RigidBodyDefine(0.01f, 0.1f, Elite::eStatic, false);
 	const Transform transform = Transform(position, Elite::ZeroVector2);
 	m_pRigidBody = new RigidBody(define, transform, PhysicsFlags::NavigationCollider);
+	m_pRigidBody->SetMass(FLT_MAX);
 
 	//Add shape
 	Elite::EPhysicsBoxShape shape;

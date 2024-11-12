@@ -8,7 +8,7 @@
 //=== Constructors & Destructors ===
 template <>
 Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::RigidBodyBase(const RigidBodyDefine& define, 
-	const internalTransformType& initialTransform, PhysicsFlags userFlags)
+	const internalTransformType& initialTransform, PhysicsFlags userFlags, bool isBullet)
 {
 	//Store define information
 	m_RigidBodyInformation = define;
@@ -42,6 +42,7 @@ Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::RigidBodyBase(const RigidB
 		m_UserDefinedFlags = userFlags;
 		auto pBody = static_cast<b2Body*>(m_pBody);
 		pBody->SetUserData(&m_UserDefinedFlags);
+		pBody->SetBullet(isBullet);
 	}
 }
 
@@ -159,6 +160,32 @@ void Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::SetPosition(const Vec
 {
 	auto pBody = static_cast<b2Body*>(m_pBody);
 	pBody->SetTransform(b2Vec2(pos.x, pos.y), pBody->GetAngle());
+}
+
+template<>
+void Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::MoveBullet(const Vector2& pos, float deltatime)
+{
+	auto pBody = static_cast<b2Body*>(m_pBody);
+	// Get the current position of the body
+	b2Vec2 currentPosition = pBody->GetPosition();
+
+	// Calculate the direction and distance to the target position
+	b2Vec2 movementDirection = pos - currentPosition;
+
+	// Calculate the speed required to reach the target in one timestep
+	// Speed = distance / time
+	float requiredSpeedX = movementDirection.x / deltatime;
+	float requiredSpeedY = movementDirection.y / deltatime;
+
+	// Set the body's velocity to move towards the target position
+	pBody->SetLinearVelocity(b2Vec2(requiredSpeedX, requiredSpeedY));
+}
+
+template <>
+void Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::StopBullet()
+{
+	auto pBody = static_cast<b2Body*>(m_pBody);
+	pBody->SetLinearVelocity(b2Vec2(0.0f, 0.0f));  // Stop immediately
 }
 
 template<>

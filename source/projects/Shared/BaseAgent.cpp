@@ -6,7 +6,7 @@ BaseAgent::BaseAgent(float radius):	m_Radius(radius)
 	//Create Rigidbody
 	const Elite::RigidBodyDefine define = Elite::RigidBodyDefine(0.01f, 0.1f, Elite::eDynamic, false);
 	const Transform transform = Transform(Elite::ZeroVector2, Elite::ZeroVector2);
-	m_pRigidBody = new RigidBody(define, transform);
+	m_pRigidBody = new RigidBody(define, transform, PhysicsFlags::Default, true);
 
 	//Add shape
 	Elite::EPhysicsCircleShape shape;
@@ -36,7 +36,7 @@ void BaseAgent::Render(float dt)
 	auto r = Elite::ToRadians(150.f);
 
 	//EliteDebugRenderer2D::GetInstance()->DrawSolidCircle(GetPosition(), m_Radius, { 0,0 }, m_BodyColor);
-	//DEBUGRENDERER2D->DrawSolidCircle(GetPosition(), m_Radius, { 0,0 }, m_BodyColor);
+	DEBUGRENDERER2D->DrawSolidCircle(GetPosition(), m_Radius, { 0,0 }, m_BodyColor);
 
 	vector<Elite::Vector2> points;
 	points.push_back(Elite::Vector2(static_cast<float>(cos(o)), static_cast<float>(sin(o)) * m_Radius) + p);

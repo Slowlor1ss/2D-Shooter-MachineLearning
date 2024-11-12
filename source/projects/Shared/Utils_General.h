@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <cfloat>
 #include <type_traits>
-
+#undef min
 
 //Removes path from __FILE__ (works for both linux and windows)
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)

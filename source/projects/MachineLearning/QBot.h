@@ -29,7 +29,7 @@ public:
 	QBot& operator=(QBot&&) noexcept = delete;
 
 	virtual void Update(vector<Food*>& foodList, Vector2 enemyPos, float deltaTime);
-	void Render(float deltaTime) override;
+	virtual void Render(float deltaTime, const Vector2 enemyPos);
 
 	bool IsAlive() const;
 	void Reset();
@@ -98,7 +98,7 @@ private:
 	float m_SFOV;
 	Color m_AliveColor;
 	Color m_DeadColor;
-	float m_MaxSpeed = 30.0f;
+	float m_MaxSpeed = 20.0f;
 	float m_Health{ 100.0f };
 	bool m_Alive = true;
 	float m_Age{ 0.0f };
@@ -109,6 +109,12 @@ private:
 	int m_WallsHit{};
 	int m_EnemiesHit{};
 	int m_EnemiesMisses{};
+	int m_EnemiesSeen{};
+
+	float m_EnemiesHitWeight{10.f};
+	float m_EnemiesMissedWeight{1.f};
+	float m_WallsHitWeight{0.5f};
+
 	float m_Fitness{};
 	float m_FitnessNormalized{};
 	float m_DistanceEnemyAtDeath{};
@@ -149,6 +155,7 @@ private:
 	int m_WallCheckCounter{ 100 };
 	bool m_Shoot{ false };
 	int m_ShootCounter{10};
+	float m_SeenCounter{1};
 	bool m_IsEnemyBehindWall{false};
 };
 #endif

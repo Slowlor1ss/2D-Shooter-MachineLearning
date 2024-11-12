@@ -19,7 +19,7 @@ public:
 	Population& operator=(Population&&) noexcept = delete;
 
 	void Update(float deltaTime, Elite::Vector2 enemyPos = {0, 0});
-	void Render(float deltaTime) const;
+	void Render(float deltaTime, const Elite::Vector2 enemyPos) const;
 
 private:
 	void NormalizeFitness() const;

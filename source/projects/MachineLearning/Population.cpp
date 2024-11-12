@@ -53,7 +53,7 @@ Population::Population(int size, float worldSize, int nrOfFood, int memorySize, 
 	{
 		const float startAngle = randomFloat(0, static_cast<float>(M_PI) * 2);
 
-		m_Bots.push_back(new QBot(startX, startY, static_cast<float>(M_PI) / 2 /*3*/, 2 /*3*/ * static_cast<float>(M_PI), startAngle, memorySize, nrOfInputs, nrOfOutputs, bias, 1.5f));
+		m_Bots.push_back(new QBot(startX, startY, static_cast<float>(M_PI) * 2 /* /2*/ /* /3*/, 2 /*3*/ * static_cast<float>(M_PI), startAngle, memorySize, nrOfInputs, nrOfOutputs, bias, 1.5f));
 		m_Bots.back()->SetObstacles(m_vNavigationColliders);
 
 		m_Foodstuff.emplace_back();
@@ -249,7 +249,7 @@ void Population::UpdateImGui()
 #pragma region UI
 	{
 		//Setup
-		constexpr int menuWidth = 150;
+		constexpr int menuWidth = 200;
 		int const width = DEBUGRENDERER2D->GetActiveCamera()->GetWidth();
 		int const height = DEBUGRENDERER2D->GetActiveCamera()->GetHeight();
 		bool windowActive = true;
@@ -258,7 +258,7 @@ void Population::UpdateImGui()
 		ImGui::Begin("2D Shooter", &windowActive, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 		ImGui::PushAllowKeyboardFocus(false);
 		ImGui::SetWindowFocus();
-		ImGui::PushItemWidth(70);
+		ImGui::PushItemWidth(100);
 		//Elements
 		ImGui::Text("CONTROLS");
 		ImGui::Indent();
@@ -274,15 +274,33 @@ void Population::UpdateImGui()
 		ImGui::Text("%.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
 		ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
 		ImGui::Text("%.1f Time Speed", TIMER->GetSpeed());
+
 		if (ImGui::Button("+ Speed"))
 		{
-			TIMER->SetSpeed(TIMER->GetSpeed() + 1.);
+			TIMER->SetSpeed(TIMER->GetSpeed() + 1.f);
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("- Speed"))
 		{
-			TIMER->SetSpeed(TIMER->GetSpeed() - 1.);
+			float speed = TIMER->GetSpeed() - 1.f;
+			if (speed < 1)
+				speed = 1;
+			TIMER->SetSpeed(speed);
 		}
+
+		if (ImGui::Button("++ Speed"))
+		{
+			TIMER->SetSpeed(TIMER->GetSpeed() + 10.f);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("-- Speed"))
+		{
+			float speed = TIMER->GetSpeed() - 10.f;
+			if (speed < 1)
+				speed = 1;
+			TIMER->SetSpeed(speed);
+		}
+
 		ImGui::Unindent();
 
 		ImGui::Spacing();
@@ -312,13 +330,13 @@ void Population::UpdateImGui()
 
 }
 
-void Population::Render(const float deltaTime) const
+void Population::Render(const float deltaTime, const Vector2 enemyPos) const
 {
 	for (size_t i{ 0 }; i < m_Bots.size(); ++i)
 	{
 		if (m_Bots[i]->IsAlive())
 		{
-			m_Bots[i]->Render(deltaTime);
+			m_Bots[i]->Render(deltaTime, enemyPos);
 
 			if (!m_ShowAllFood)
 				continue;
@@ -437,7 +455,7 @@ void Population::SelectParentSUS(const float sum) const
 	std::vector<float> pointers{};
 
 	const auto maxFit{ sum };
-	constexpr auto num{ 25 }; //Number of offspring to keep
+	const int num = (float)m_Size * 0.2f; //Number of offspring to keep
 	const auto dist = maxFit / static_cast<float>(num);
 	const auto start = randomFloat(0, dist); // TODO: what is dist is lower then 0?
 	for (size_t i{ 0 }; i < num; ++i)

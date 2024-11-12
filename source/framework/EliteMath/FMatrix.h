@@ -10,6 +10,7 @@
 #include <random>
 
 #include "projects/Shared/Utils_General.h"
+#include <immintrin.h>  // AVX/AVX2 support
 
 namespace Elite 
 {
@@ -45,7 +46,7 @@ namespace Elite
 			m_Size = m_Rows * m_Columns;
 			m_Data = new float[m_Size];
 		}
-
+#pragma optimize("", off)
 		void Set(const int row, const int column, const float value) const
 		{
 			const int index = rcToIndex(row, column);
@@ -56,11 +57,34 @@ namespace Elite
 			else 
 			{
 				printf("Wrong index! [%d, %d]\n", row, column);
+				__debugbreak();
 			}
 		}
+#pragma optimize("", on)
+		void SetAllZero() const
+		{
+			std::memset(m_Data, 0, m_Size * sizeof(float));
+		}
+		//	void SetAll(const float value) const
+		//{
+		//	for (int i = 0; i < m_Size; ++i)
+		//	{
+		//		m_Data[i] = value;
+		//	}
+		//}
 		void SetAll(const float value) const
 		{
-			for (int i = 0; i < m_Size; ++i)
+			int size = m_Size;
+			__m256 val = _mm256_set1_ps(value);  // Create a 256-bit vector filled with `value`
+
+			int i = 0;
+			for (; i <= size - 8; i += 8)
+			{
+				_mm256_storeu_ps(&m_Data[i], val);  // Store the value in 8 consecutive positions
+			}
+
+			// Fill any remaining elements with the scalar loop in case m_Size is not a multiple of 8
+			for (; i < size; ++i)
 			{
 				m_Data[i] = value;
 			}
@@ -72,18 +96,20 @@ namespace Elite
 				Set(row, c, value);
 			}
 		}
-
+#pragma optimize("", off)
 		void Add(const int row, const int column, const float toAdd) const
 		{
 			const int index = rcToIndex(row, column);
 			if (index > -1 && index < m_Size) {
 				m_Data[index] += toAdd;
 			}
-			else {
+			else 
+			{
 				printf("Wrong index! [%d, %d]\n", row, column);
+				__debugbreak();
 			}
 		}
-
+#pragma optimize("", on)
 
 		float Get(const int row, const int column) const
 		{
@@ -195,16 +221,39 @@ namespace Elite
 			}
 		}
 
+		//void Add(const FMatrix& other) const
+		//{
+		//	int maxRows = min(GetNrOfRows(), other.GetNrOfRows());
+		//	int maxColumns = min(GetNrOfColumns(), other.GetNrOfColumns());
+
+		//	for (int c_row = 0; c_row < maxRows; ++c_row) {
+		//		for (int c_column = 0; c_column < maxColumns; ++c_column) {
+		//			float oVal = other.Get(c_row, c_column);
+		//			float thisVal = Get(c_row, c_column);
+		//			Set(c_row, c_column, thisVal + oVal);
+		//		}
+		//	}
+		//}
 		void Add(const FMatrix& other) const
 		{
-			int maxRows = min(GetNrOfRows(), other.GetNrOfRows());
-			int maxColumns = min(GetNrOfColumns(), other.GetNrOfColumns());
+			const int maxRows = std::min(GetNrOfRows(), other.GetNrOfRows());
+			const int maxColumns = std::min(GetNrOfColumns(), other.GetNrOfColumns());
 
-			for (int c_row = 0; c_row < maxRows; ++c_row) {
-				for (int c_column = 0; c_column < maxColumns; ++c_column) {
-					float oVal = other.Get(c_row, c_column);
-					float thisVal = Get(c_row, c_column);
-					Set(c_row, c_column, thisVal + oVal);
+			// Directly access m_Data and avoid using Get/Set if possible
+			for (int c_row = 0; c_row < maxRows; ++c_row) 
+			{
+				for (int c_column = 0; c_column < maxColumns; ++c_column) 
+				{
+					const int indexThis = rcToIndex(c_row, c_column);    // Index for the current matrix
+					const int indexOther = other.rcToIndex(c_row, c_column); // Index for the other matrix
+
+					// Assuming rcToIndex is correct and returns valid indices
+					if (indexThis >= 0 && indexThis < m_Size && indexOther >= 0 && indexOther < other.m_Size) {
+						m_Data[indexThis] += other.m_Data[indexOther]; // Add directly to m_Data
+					}
+					else {
+						printf("Index out of bounds! [%d, %d]\n", c_row, c_column);
+					}
 				}
 			}
 		}

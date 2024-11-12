@@ -22,7 +22,7 @@ namespace Elite
 	public:
 		//=== Constructors & Destructors ===
 		RigidBodyBase(const RigidBodyDefine& define, const internalTransformType& initialTransform,
-			PhysicsFlags userFlags = PhysicsFlags::Default);
+			PhysicsFlags userFlags = PhysicsFlags::Default, bool isBullet = false);
 		~RigidBodyBase();
 
 		//=== RigidBody Functions ===
@@ -33,6 +33,8 @@ namespace Elite
 		void SetTransform(const internalTransformType& transform);
 		translationType GetPosition();
 		void SetPosition(const translationType& pos);
+		void MoveBullet(const translationType& pos, float deltatime);
+		void StopBullet();
 		orientationType GetRotation();
 		void SetRotation(const orientationType& rot);
 

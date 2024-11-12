@@ -45,10 +45,7 @@ void DynamicQLearning::Update(const float deltaTime) const
 
 void DynamicQLearning::Render(const float deltaTime) const
 {
-	m_pPopulation->Render(deltaTime);
+	m_pPopulation->Render(deltaTime, m_Enemy->GetPosition());
 	if (SettingsRL::m_TrainShooting)
 		m_Enemy->Render(deltaTime);
-
-	DEBUGRENDERER2D->DrawSolidCircle({ 105, 105 }, 10, { 0,0 }, { 0,0,1 });
-	DEBUGRENDERER2D->DrawSolidCircle({ 0, 0 }, 10, { 0,0 }, { 0,0,1 });
 }
