@@ -68,7 +68,7 @@ void Elite::ETimer<PLATFORM_WINDOWS>::Update()
 		m_ElapsedTime = m_ElapsedUpperBound;
 	}
 
-	m_TotalTime = (float)((((m_CurrentTime - m_PausedTime) - m_BaseTime) * m_SecondsPerCount));
+	m_TotalTime = (float)((((m_CurrentTime - m_PausedTime) - m_BaseTime) * m_SecondsPerCount) * m_Speed);
 
 	//FPS LOGIC
 	m_FPSTimer += m_ElapsedTime;

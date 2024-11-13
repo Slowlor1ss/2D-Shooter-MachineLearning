@@ -257,6 +257,27 @@ namespace Elite
 				}
 			}
 		}
+		void FastAdd(const FMatrix& other) const
+		{
+			const int maxRows = std::min(GetNrOfRows(), other.GetNrOfRows());
+			const int maxColumns = std::min(GetNrOfColumns(), other.GetNrOfColumns());
+			const int stride = GetNrOfColumns(); // Assuming a row-major layout
+
+			// Using pointers for direct access
+			float* __restrict dataPtr = m_Data; // Assuming m_Data is a float array or pointer
+			const float* __restrict otherDataPtr = other.m_Data;
+
+			for (int c_row = 0; c_row < maxRows; ++c_row)
+			{
+				int rowOffset = c_row * stride;
+				for (int c_column = 0; c_column < maxColumns; ++c_column)
+				{
+					// Calculate index without calling rcToIndex
+					int indexThis = rowOffset + c_column;
+					dataPtr[indexThis] += otherDataPtr[indexThis];
+				}
+			}
+		}
 
 		void Subtract(const FMatrix& other) const
 		{

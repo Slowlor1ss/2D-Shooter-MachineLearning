@@ -27,12 +27,12 @@ private:
 
 	//Population* m_pPopulation;
 	Population2* m_pPopulation;
-	static constexpr int m_EnemiesSize = 4;
+	static constexpr int m_EnemiesSize = 10;
 	std::vector<SteeringAgent*> m_Enemies;
 	Wander* m_Wander;
 
 	//--Level--
-	static constexpr float m_TrimWorldSize = 100.f;
+	static constexpr float m_TrimWorldSize = 150.f;
 
 	//int m_MemorySize;
 	//int m_NrOfInputs;

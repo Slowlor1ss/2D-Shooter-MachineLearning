@@ -101,12 +101,13 @@ private:
 	Color m_DeadColor;
 
 	float m_MaxSpeed{ 30.0f };
-	float m_MaxAngleChange{static_cast<float>(M_PI)};
+	float m_MaxAngleChange{};
 	float m_Health{ 100.0f };
 	bool m_Alive = true;
 	float m_Age{ 0.0f };
 
 	float m_distCooldown{};
+	float m_WallHitCooldown{};
 
 	float m_AngleStep;
 

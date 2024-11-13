@@ -38,7 +38,7 @@ void PhysicsWorld::Initialize()
 	m_pPhysicsWorld->SetAllowSleeping(true);
 	m_pPhysicsWorld->SetWarmStarting(true);
 	m_pPhysicsWorld->SetContinuousPhysics(true);
-	m_pPhysicsWorld->SetSubStepping(false);
+	m_pPhysicsWorld->SetSubStepping(true);
 
 	auto pDebugRenderer = new Box2DRenderer();
 	const auto flags = 1; //Render: shapes
@@ -54,19 +54,21 @@ void PhysicsWorld::Simulate(float elapsedTime)
 		return;
 
 	Box2DPhysicsSettings physicsSettings;
-	physicsSettings.velocityIterations = 8;
-	physicsSettings.positionIterations = 3;
+	physicsSettings.velocityIterations = 10;
+	physicsSettings.positionIterations = 4;
 	physicsSettings.hz = 30;
 
 	//physicsSettings.velocityIterations += TIMER->GetSpeed();
 	//physicsSettings.positionIterations += TIMER->GetSpeed();
-	physicsSettings.hz *= TIMER->GetSpeed();
+	physicsSettings.hz = int((physicsSettings.hz*TIMER->GetSpeed()));
+	//physicsSettings.hz = physicsSettings.hz < 30 ? 30 : physicsSettings.hz;
+	//std::cout << physicsSettings.hz << '\n';
 
 	//physicsSettings.hz = 120.f;
 	float frameTime = physicsSettings.hz > 0.0f ? 1.0f / physicsSettings.hz : float32(1.f / 60.f);
 	//frameTime *= TIMER->GetSpeed();
-	//if (elapsedTime > 0.25f)
-	//	elapsedTime = 0.25f;
+	if (elapsedTime > 0.25f)
+		elapsedTime = 0.25f;
 
 	m_FrameTimeAccumulator += elapsedTime;
 

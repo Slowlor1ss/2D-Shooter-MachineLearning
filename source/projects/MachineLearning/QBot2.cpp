@@ -23,10 +23,22 @@ QBot2::QBot2(Vector2 pos, float angle, float radius, float fov, int memorySize) 
 	m_Radius = radius;
 
 	m_FOV = fov;
-	m_AngleStep = fov / m_InputObstacleProxIndices.size();
-	for (size_t i = 0; i < m_InputObstacleProxIndices.size(); i++)
-	{
-		m_ObstacleSensorsInRad.push_back(m_AngleStep * i);
+	m_MaxAngleChange = m_FOV;
+	//m_AngleStep = fov / m_InputObstacleProxIndices.size();
+	//for (size_t i = 0; i < m_InputObstacleProxIndices.size(); i++)
+	//{
+	//	m_ObstacleSensorsInRad.push_back(m_AngleStep * i);
+	//}
+
+	if (m_InputObstacleProxIndices.size() < 2) {
+		throw std::invalid_argument("Number of sensors must be at least 2 for symmetrical spacing.");
+	}
+
+	// Calculate the spacing between each sensor angle
+	m_AngleStep = fov / (m_InputObstacleProxIndices.size() - 1);
+	for (int i = 0; i < m_InputObstacleProxIndices.size(); ++i) {
+		float angle = -fov / 2 + i * m_AngleStep;
+		m_ObstacleSensorsInRad.push_back(angle);
 	}
 
 	//for (size_t i = 0; i < m_OutputRotationIndices.size(); i++)
@@ -187,6 +199,7 @@ void QBot2::MutateMatrix(const float mutationRate, const float mutationAmplitude
 	}
 }
 
+//TODO: optimize instead of calling this a bunch of times update all at once every frame or something
 void QBot2::Reinforcement(const float factor, const int memory) const
 {
 	// go back in time, and reinforce (or inhibit) the weights that led to the right/wrong decision.
@@ -228,7 +241,7 @@ void QBot2::Reinforcement(const float factor, const int memory) const
 			}
 
 			m_DeltaBotBrain.ScalarMultiply(oneDivMem);
-			m_BotBrain.Add(m_DeltaBotBrain);
+			m_BotBrain.FastAdd(m_DeltaBotBrain);
 		}
 	}
 }
@@ -264,7 +277,7 @@ void QBot2::Update(const std::vector<SteeringAgent*>& enemies, float deltaTime)
 	UpdateBot(enemies, dir, deltaTime);
 
 	//Make the bot lose 0.1 health per second
-	m_Health -= 0.1f * deltaTime;
+	m_Health -= 0.5f * deltaTime;
 
 	if (m_Health < 0) {
 		// update the bot brain, they did something bad
@@ -414,15 +427,27 @@ void QBot2::UpdateNavigation(const Vector2& dir, const float& angleStep, float d
 		if (dist < m_MaxDistance && angle > -m_FOV / 2 && angle < m_FOV / 2)
 		{
 			NoWallsInFov = false;
+
+			int closestIndex = 0;
+			double minDifference = std::abs(m_InputObstacleProxIndices[0] - angle);
+
+			for (int i = 1; i < m_InputObstacleProxIndices.size(); ++i) {
+				double difference = std::abs(m_InputObstacleProxIndices[i] - angle);
+				if (difference < minDifference) {
+					minDifference = difference;
+					closestIndex = i;
+				}
+			}
+
 			// Which sensor can see the wall/closest to wall (in case of multiple)
-			const int angleIndex = static_cast<int>(std::round(m_InputObstacleProxIndices[0] + (angle / angleStep))); // TODO: Test This! its quit eimportant for navigation...
+			//const int angleIndex = static_cast<int>(std::round(m_InputObstacleProxIndices[0] + (angle / angleStep))); // TODO: Test This! its quit eimportant for navigation...
 			//int accelerationIndex = static_cast<int>(m_NrOfMovementInputs * (2 / 3.f) + ((angle + m_FOV / 2) / speedStep));
 
 			//float invDist = CalculateInverseDistance(dist);
 			//float currentDist = m_StateMatrixMemoryArr[currentIndex].Get(0, angleIndex);
 			//if (invDist > currentDist) // why do we do this check?
 			//{
-				m_StateMatrixMemoryArr[currentIndex].Set(0, angleIndex, dist);
+				m_StateMatrixMemoryArr[currentIndex].Set(0, closestIndex, dist);
 				//m_StateMatrixMemoryArr[currentIndex].Set(0, accelerationIndex, invDist);
 			//}
 
@@ -432,24 +457,39 @@ void QBot2::UpdateNavigation(const Vector2& dir, const float& angleStep, float d
 		}
 		else
 		{
-			const int angleIndex = static_cast<int>(std::round(m_InputObstacleProxIndices[0] + (angle / angleStep)));
-			m_StateMatrixMemoryArr[currentIndex].Set(0, angleIndex, FLT_MAX);
+			//const int angleIndex = static_cast<int>(std::round(m_InputObstacleProxIndices[0] + (angle / angleStep)));
+			int closestIndex = 0;
+			double minDifference = std::abs(m_InputObstacleProxIndices[0] - angle);
+
+			for (int i = 1; i < m_InputObstacleProxIndices.size(); ++i) {
+				double difference = std::abs(m_InputObstacleProxIndices[i] - angle);
+				if (difference < minDifference) {
+					minDifference = difference;
+					closestIndex = i;
+				}
+			}
+			m_StateMatrixMemoryArr[currentIndex].Set(0, closestIndex, FLT_MAX);
 		}
 
-		//got close to a wall
-		if (dist < 5.f + m_Radius) {
-			StayedAwayFromWalls = false;
-		}
-		//hits a wall
-		if (dist < 0.5f + m_Radius) {
-			if ((m_Age - deltaTime) > deltaTime) // Add some spawn protection for the first frame
-			{
-				// TODO: this wallshit value probably needs to be lower like increase by 1 every second and then also change weight
-				++m_WallsHit;
-				m_Health -= 5.f * deltaTime;
-				Reinforcement(m_NegativeQSmall, 50);
+		m_WallHitCooldown += deltaTime;
+		if (m_WallHitCooldown > 1.f)
+		{
+			//got close to a wall
+			if (dist < 5.f + m_Radius) {
+				StayedAwayFromWalls = false;
 			}
-			break;
+			//hits a wall
+			if (dist < 0.5f + m_Radius) {
+				if ((m_Age - deltaTime) > deltaTime) // Add some spawn protection for the first frame
+				{
+					// TODO: this wallshit value probably needs to be lower like increase by 1 every second and then also change weight
+					++m_WallsHit;
+					m_Health -= 1.f * deltaTime;
+					Reinforcement(m_NegativeQSmall, 50);
+				}
+				break;
+			}
+			m_WallHitCooldown = 0;
 		}
 
 		m_distCooldown += deltaTime;
@@ -459,12 +499,12 @@ void QBot2::UpdateNavigation(const Vector2& dir, const float& angleStep, float d
 			if (distance < 0.06 * deltaTime)
 			{
 				Reinforcement(m_NegativeQ, m_MemorySize);
-				m_Health -= 0.1f * deltaTime;
+				m_Health -= 0.01f * deltaTime;
 			}
 			else
 			{
-				Reinforcement(m_PositiveQ, m_MemorySize);
-				m_Health += 0.1f * deltaTime;
+				//Reinforcement(m_PositiveQ, m_MemorySize);
+				m_Health += 0.01f * deltaTime;
 			}
 			m_distCooldown = 0;
 		}
@@ -472,13 +512,24 @@ void QBot2::UpdateNavigation(const Vector2& dir, const float& angleStep, float d
 
 	// TODO pass these variables from Population::Population
 	// Is outside of wall's? If so get back or SUFFER
-	constexpr float worldSize = 100;
+	//constexpr float worldSize = 100;
+	//constexpr float blockSize{ 5.0f };
+	//constexpr float hBlockSize{ blockSize / 2.0f };
+	//if ((location.x < -worldSize - blockSize || location.x > worldSize + hBlockSize)
+	//	|| (location.y < -worldSize - blockSize || location.y > worldSize + hBlockSize))
+	//{
+	//	m_Health -= 10.f * deltaTime;
+	//	m_AliveColor = { 0.7f, 0.7f, 1.0f, 1.f };
+	//}
+
+	//move out of spawn area
+	constexpr float worldSize = 25;
 	constexpr float blockSize{ 5.0f };
 	constexpr float hBlockSize{ blockSize / 2.0f };
 	if ((location.x < -worldSize - blockSize || location.x > worldSize + hBlockSize)
 		|| (location.y < -worldSize - blockSize || location.y > worldSize + hBlockSize))
 	{
-		m_Health -= 10.f * deltaTime;
+		m_Health += 0.3f * deltaTime;
 		m_AliveColor = { 0.7f, 0.7f, 1.0f, 1.f };
 	}
 
@@ -578,20 +629,23 @@ void QBot2::UpdateEnemy(const std::vector<SteeringAgent*>& enemies, const Vector
 			Vector2 enemyPos = enemy->GetPosition();
 			float distFromEnemySqr = GetPosition().DistanceSquared(enemyPos);
 			// TODO: maybe put code in location of m_IsEnemyBehindWall but look in to AngleBetween differences see which one is right
-			bool isLookingAtEnemy = AreEqual(AngleBetween(dir, enemyPos - m_CurrentPos), 0.f, 0.05f) && !m_IsEnemyBehindWall;
+			bool isLookingAtEnemy = AreEqual(AngleBetween(dir, enemyPos - m_CurrentPos), 0.f, 0.5f) && !m_IsEnemyBehindWall;
 
 			// Looking at enemy
 			if (distFromEnemySqr < Elite::Square(m_MaxDistance))
 			{
 				if (isLookingAtEnemy)
 				{
-					if(m_CurrSpeed > 0.f)	
+					if (m_CurrSpeed > 0.1f)
+					{
 						Reinforcement(m_PositiveQ /** 10*/, m_MemorySize);
+						m_Health += 0.01f * deltaTime;
+					}
 					//++m_EnemiesSeen;
 					//m_Health += 0.01f;
 
-					//m_StateMatrixMemoryArr[currentIndex].Set(0, m_InputEnemyDistIndex, sqrt(distFromEnemySqr));
-					//m_StateMatrixMemoryArr[currentIndex].Set(0, m_InputEnemySeenIndex, 1);
+					m_StateMatrixMemoryArr[currentIndex].Set(0, m_InputEnemyDistIndex, sqrt(distFromEnemySqr));
+					m_StateMatrixMemoryArr[currentIndex].Set(0, m_InputEnemySeenIndex, 1);
 
 					//TODO: pass a parameter selected agent trough update so we can print messages only for the selected agent
 					//cout << "Saw enemy\n";

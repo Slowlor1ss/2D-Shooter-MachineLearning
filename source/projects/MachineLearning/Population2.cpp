@@ -28,14 +28,14 @@ Population2::Population2(int size, float worldSize, int nrOfFood, int memorySize
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(0.0f, worldSize + hBlockSize), worldSize * 2.0f, blockSize));
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(0.0f, -worldSize - hBlockSize), worldSize * 2.0f, blockSize));
 
-		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -50.0f + (6 / 2.f)), 36, 3));
-		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (76 / 2.f), -28.0f + (6 / 2.f)), 76, 3));
-		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(18.0f + (36 / 2.f), -28.0f + (6 / 2.f)), 36, 3));
-		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -6.0f + (6 / 2.f)), 36, 3));
-		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-35.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
-		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
-		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (84 / 2.f), 43.0f + (6 / 2.f)), 84, 3));
-		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 43.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -50.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (76 / 2.f), -28.0f + (6 / 2.f)), 76, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(18.0f + (36 / 2.f), -28.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -6.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-35.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (84 / 2.f), 43.0f + (6 / 2.f)), 84, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 43.0f + (6 / 2.f)), 36, 3));
 	}
 
 	//std::vector<float> foodX{};
@@ -53,7 +53,7 @@ Population2::Population2(int size, float worldSize, int nrOfFood, int memorySize
 		const float startAngle = randomFloat(0, static_cast<float>(M_PI) * 2);
 
 		m_Bots.push_back(new QBot2({ 0.f, 0.f }, 0,
-			1.5f, 2 * static_cast<float>(M_PI), memorySize));
+			1.5f, static_cast<float>(M_PI)/2.f, memorySize));
 		m_Bots.back()->SetObstacles(m_vNavigationColliders);
 	}
 }

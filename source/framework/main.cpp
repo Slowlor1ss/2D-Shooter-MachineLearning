@@ -42,7 +42,8 @@ bool gRequestShutdown = false;
 #undef main //Undefine SDL_main as main
 int main(int argc, char* argv[])
 {
-	auto seed{ (unsigned)time(0) };
+	//auto seed{ (unsigned)time(0) };
+	auto seed{ (unsigned)1731509834 };
 	srand(seed);
 	std::cout << "Seed: " << seed <<'\n';
 
@@ -118,12 +119,17 @@ int main(int argc, char* argv[])
 		//Boot application
 		myApp->Start();
 
+		float timeSinceLastUpdate{};
+		constexpr float TimePerFrame = 1.f / 30.f;
+
 		//Application Loop
 		while (!pWindow->ShutdownRequested())
 		{
 			//Timer
 			TIMER->Update();
 			auto const elapsed = TIMER->GetElapsed();
+
+			timeSinceLastUpdate += elapsed;
 
 			//Window procedure first, to capture all events and input received by the window
 			if (!pImmediateUI->FocussedOnUI())
@@ -139,10 +145,14 @@ int main(int argc, char* argv[])
 			pCamera->Update();
 			myApp->Update(elapsed);
 
-			//Render and Present Frame
-			PHYSICSWORLD->RenderDebug();
-			myApp->Render(elapsed);
-			pFrame->SubmitAndFlipFrame(pImmediateUI);
+			if (timeSinceLastUpdate > TimePerFrame)
+			{
+				timeSinceLastUpdate -= TimePerFrame;
+				//Render and Present Frame
+				PHYSICSWORLD->RenderDebug();
+				myApp->Render(elapsed);
+				pFrame->SubmitAndFlipFrame(pImmediateUI);
+			}
 		}
 
 		//Reversed Deletion

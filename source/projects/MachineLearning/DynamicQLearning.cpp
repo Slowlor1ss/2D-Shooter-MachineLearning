@@ -17,7 +17,7 @@ DynamicQLearning::DynamicQLearning(int nrOfFood, int memorySize, int nrOfInputs,
 	if (SettingsRL::m_TrainShooting)
 	{
 		m_Wander = new Wander();
-		m_Wander->SetMaxAngleChange(2*M_PI);
+		m_Wander->SetMaxAngleChange(M_PI);
 		//m_Wander->SetWanderOffset();
 		//m_Wander->SetWanderRadius();
 
@@ -25,7 +25,8 @@ DynamicQLearning::DynamicQLearning(int nrOfFood, int memorySize, int nrOfInputs,
 		{
 			m_Enemies.emplace_back(new SteeringAgent(1.5f, {1,0,0,0.5f}, Elite::ENEMY_CATEGORY));
 			m_Enemies[i]->SetSteeringBehavior(m_Wander);
-			m_Enemies[i]->SetPosition({ 0, 50 });
+			m_Enemies[i]->SetMaxLinearSpeed(2);
+			m_Enemies[i]->SetPosition({ Elite::randomFloat(-50.0f, 50.0f), Elite::randomFloat(-50.0f, 50.0f) });
 		}
 	}
 }
@@ -49,9 +50,10 @@ void DynamicQLearning::Update(const float deltaTime) const
 {
 	if (SettingsRL::m_TrainShooting)
 	{
-		m_Enemies[1]->TrimToWorld(m_TrimWorldSize - 10);
+		//m_Enemies[1]->TrimToWorld(m_TrimWorldSize - 10);
 		for (int i = 0; i < m_EnemiesSize; ++i)
 		{
+			//m_Enemies[i]->TrimToWorld(m_TrimWorldSize - 5);
 			m_Enemies[i]->Update(deltaTime);
 		}
 
