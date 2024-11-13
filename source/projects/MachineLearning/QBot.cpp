@@ -645,7 +645,7 @@ void QBot::Reinforcement(const float factor, const int memory) const
 			{
 				m_DeltaBotBrain.Add(c, cMax, timeFactor * factor * scVal);
 
-				int rcMax{};
+				int rcMax;
 				do
 				{
 					rcMax = randomInt(m_DeltaBotBrain.GetNrOfColumns() - 1);

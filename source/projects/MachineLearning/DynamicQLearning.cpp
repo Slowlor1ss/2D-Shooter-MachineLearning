@@ -4,12 +4,13 @@
 
 #include "App_MachineLearning.h"
 #include "Population.h"
+#include "Population2.h"
 #include "projects/Movement/SteeringBehaviors/SteeringAgent.h"
 #include "projects/Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
 
 
 DynamicQLearning::DynamicQLearning(int nrOfFood, int memorySize, int nrOfInputs, int nrOfOutputs, bool bias)
-	: m_pPopulation(new Population(50, m_TrimWorldSize, nrOfFood, memorySize, nrOfInputs, nrOfOutputs, bias))
+	: m_pPopulation(new Population2(50, m_TrimWorldSize, nrOfFood, memorySize, nrOfInputs, nrOfOutputs, bias))
 	, m_Enemies{}
 	, m_Wander(nullptr)
 {

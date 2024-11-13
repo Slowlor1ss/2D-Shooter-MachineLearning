@@ -210,7 +210,9 @@
     <ClCompile Include="projects\MachineLearning\App_MachineLearning.cpp" />
     <ClCompile Include="projects\MachineLearning\DynamicQLearning.cpp" />
     <ClCompile Include="projects\MachineLearning\Food.cpp" />
+    <ClCompile Include="projects\MachineLearning\Population2.cpp" />
     <ClCompile Include="projects\MachineLearning\QBot.cpp" />
+    <ClCompile Include="projects\MachineLearning\QBot2.cpp" />
     <ClCompile Include="projects\Movement\SteeringBehaviors\CombinedSteering\App_CombinedSteering.cpp" />
     <ClCompile Include="projects\Movement\SteeringBehaviors\CombinedSteering\CombinedSteeringBehaviors.cpp" />
     <ClCompile Include="projects\Movement\SteeringBehaviors\Flocking\App_Flocking.cpp" />
@@ -255,6 +257,7 @@
     <ClInclude Include="framework\EliteAI\EliteNavigation\Algorithms\EPathSmoothing.h" />
     <ClInclude Include="framework\EliteAI\EliteNavigation\EHeuristicFunctions.h" />
     <ClInclude Include="framework\EliteAI\EliteNavigation\ENavigation.h" />
+    <ClInclude Include="projects\MachineLearning\Population2.h" />
     <ClInclude Include="projects\MachineLearning\Population.h" />
     <ClInclude Include="projects\App_MachineLearning\DirectedGraph.h" />
     <ClInclude Include="framework\EliteMath\FMatrix.h" />
@@ -303,6 +306,7 @@
     <ClInclude Include="projects\MachineLearning\DynamicQLearning.h" />
     <ClInclude Include="projects\MachineLearning\Food.h" />
     <ClInclude Include="projects\MachineLearning\QBot.h" />
+    <ClInclude Include="projects\MachineLearning\QBot2.h" />
     <ClInclude Include="projects\Movement\SteeringBehaviors\CombinedSteering\App_CombinedSteering.h" />
     <ClInclude Include="projects\Movement\SteeringBehaviors\CombinedSteering\CombinedSteeringBehaviors.h" />
     <ClInclude Include="projects\Movement\SteeringBehaviors\Flocking\App_Flocking.h" />

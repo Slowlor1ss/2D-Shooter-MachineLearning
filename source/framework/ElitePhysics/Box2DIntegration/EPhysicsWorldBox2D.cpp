@@ -54,11 +54,19 @@ void PhysicsWorld::Simulate(float elapsedTime)
 		return;
 
 	Box2DPhysicsSettings physicsSettings;
-	//physicsSettings.hz = 120.f;
-	const float frameTime = physicsSettings.hz > 0.0f ? 1.0f / physicsSettings.hz : float32(1.f / 60.f);
+	physicsSettings.velocityIterations = 8;
+	physicsSettings.positionIterations = 3;
+	physicsSettings.hz = 30;
 
-	if (elapsedTime > 0.25f)
-		elapsedTime = 0.25f;
+	//physicsSettings.velocityIterations += TIMER->GetSpeed();
+	//physicsSettings.positionIterations += TIMER->GetSpeed();
+	physicsSettings.hz *= TIMER->GetSpeed();
+
+	//physicsSettings.hz = 120.f;
+	float frameTime = physicsSettings.hz > 0.0f ? 1.0f / physicsSettings.hz : float32(1.f / 60.f);
+	//frameTime *= TIMER->GetSpeed();
+	//if (elapsedTime > 0.25f)
+	//	elapsedTime = 0.25f;
 
 	m_FrameTimeAccumulator += elapsedTime;
 

@@ -4,6 +4,7 @@
 class Wander;
 class SteeringAgent;
 class Population;
+class Population2;
 
 class DynamicQLearning final
 {
@@ -24,7 +25,8 @@ public:
 
 private:
 
-	Population* m_pPopulation;
+	//Population* m_pPopulation;
+	Population2* m_pPopulation;
 	static constexpr int m_EnemiesSize = 4;
 	std::vector<SteeringAgent*> m_Enemies;
 	Wander* m_Wander;

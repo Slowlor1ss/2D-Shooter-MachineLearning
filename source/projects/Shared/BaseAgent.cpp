@@ -6,7 +6,7 @@ BaseAgent::BaseAgent(float radius, Elite::CollisionCategories collisionCategory)
 	//Create Rigidbody
 	const Elite::RigidBodyDefine define = Elite::RigidBodyDefine(0.01f, 0.1f, Elite::eDynamic, false);
 	const Transform transform = Transform(Elite::ZeroVector2, Elite::ZeroVector2);
-	m_pRigidBody = new RigidBody(define, transform, PhysicsFlags::Default, true);
+	m_pRigidBody = new RigidBody(define, transform, PhysicsFlags::Default, false);
 
 	//Add shape
 	Elite::EPhysicsCircleShape shape;

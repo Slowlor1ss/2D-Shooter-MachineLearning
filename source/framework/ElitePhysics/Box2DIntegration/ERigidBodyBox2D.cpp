@@ -158,7 +158,7 @@ void Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::AddCollisionFiltering
 	if (m_vFixtures.empty())
 		assert(!"Cannot add Collision filtering if there no fixture to add it too");
 
-	// Apply the filter to the body’s fixtures TODO: maybe use m_vFixtures
+	// Apply the filter to the bodyï¿½s fixtures TODO: maybe use m_vFixtures
 	for (b2Fixture* f = pBody->GetFixtureList(); f; f = f->GetNext())
 	{
 		f->SetFilterData(filter);
@@ -213,6 +213,8 @@ void Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::MoveBullet(const Vect
 
 	// Calculate the speed required to reach the target in one timestep
 	// Speed = distance / time
+	/*float requiredSpeedX = movementDirection.x / (60 * TIMER->GetSpeed());
+	float requiredSpeedY = movementDirection.y / (60 * TIMER->GetSpeed());*/
 	float requiredSpeedX = movementDirection.x / deltatime;
 	float requiredSpeedY = movementDirection.y / deltatime;
 

@@ -42,6 +42,8 @@
     <ClCompile Include="projects\MachineLearning\Population.cpp" />
     <ClCompile Include="projects\Shared\StringPlusPlus.cpp" />
     <ClCompile Include="projects\Shared\Utils_General.cpp" />
+    <ClCompile Include="projects\MachineLearning\QBot2.cpp" />
+    <ClCompile Include="projects\MachineLearning\Population2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="projects\App_Selector.h" />
@@ -132,6 +134,8 @@
     <ClInclude Include="projects\Shared\Utils_General.h" />
     <ClInclude Include="projects\Shared\StringPlusPlus.h" />
     <ClInclude Include="projects\Shared\ConsoleColors.h" />
+    <ClInclude Include="projects\MachineLearning\QBot2.h" />
+    <ClInclude Include="projects\MachineLearning\Population2.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
