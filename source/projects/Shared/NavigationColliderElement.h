@@ -17,6 +17,7 @@ public:
 
 	//--- Functions ---
 	void RenderElement();
+	Elite::Vector2 CalculateNormal(const Elite::Vector2& pos) const;
 	Elite::Vector2 GetClosestPoint(const Elite::Vector2& pos) const;
 	float DistancePointRect(const Elite::Vector2& pos) const;
 	float DistanceSquaredPointRect(const Elite::Vector2& pos) const;

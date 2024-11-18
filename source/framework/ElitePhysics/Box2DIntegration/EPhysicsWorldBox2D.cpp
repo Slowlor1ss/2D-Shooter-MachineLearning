@@ -60,15 +60,15 @@ void PhysicsWorld::Simulate(float elapsedTime)
 
 	//physicsSettings.velocityIterations += TIMER->GetSpeed();
 	//physicsSettings.positionIterations += TIMER->GetSpeed();
-	physicsSettings.hz = int((physicsSettings.hz*TIMER->GetSpeed()));
+	physicsSettings.hz = int((physicsSettings.hz/**TIMER->GetSpeed()*/));
 	//physicsSettings.hz = physicsSettings.hz < 30 ? 30 : physicsSettings.hz;
 	//std::cout << physicsSettings.hz << '\n';
 
 	//physicsSettings.hz = 120.f;
 	float frameTime = physicsSettings.hz > 0.0f ? 1.0f / physicsSettings.hz : float32(1.f / 60.f);
 	//frameTime *= TIMER->GetSpeed();
-	if (elapsedTime > 0.25f)
-		elapsedTime = 0.25f;
+	//if (elapsedTime > 0.25f)
+	//	elapsedTime = 0.25f;
 
 	m_FrameTimeAccumulator += elapsedTime;
 

@@ -38,6 +38,47 @@ void NavigationColliderElement::RenderElement()
 	//Do Nothing
 }
 
+// Assumes we cant rotate our colliders!
+Elite::Vector2 NavigationColliderElement::CalculateNormal(const Elite::Vector2& pos) const
+{
+	// Identify which edge the point lies on
+	if (pos.x < m_Left && pos.y > m_Top) // top-left corner
+	{
+		return { -1, 1 }; // Normal pointing diagonally from the corner
+	}
+	else if (pos.x > m_Right && pos.y > m_Top) // top-right corner
+	{
+		return { 1, 1 }; // Normal pointing diagonally from the corner
+	}
+	else if (pos.x < m_Left && pos.y < m_Bottom) // bottom-left corner
+	{
+		return { -1, -1 }; // Normal pointing diagonally from the corner
+	}
+	else if (pos.x > m_Right && pos.y < m_Bottom) // bottom-right corner
+	{
+		return { 1, -1 }; // Normal pointing diagonally from the corner
+	}
+	else if (pos.y > m_Top) // top side
+	{
+		return { 0, 1 }; // Normal pointing up
+	}
+	else if (pos.x > m_Right) // right side
+	{
+		return { 1, 0 }; // Normal pointing right
+	}
+	else if (pos.y < m_Bottom) // bottom side
+	{
+		return { 0, -1 }; // Normal pointing down
+	}
+	else if (pos.x < m_Left) // left side
+	{
+		return { -1, 0 }; // Normal pointing left
+	}
+
+	throw std::invalid_argument("failed all checks");
+	return {};
+}
+
 //https://math.stackexchange.com/questions/356792/how-to-find-nearest-point-on-line-of-rectangle-from-anywhere
 Elite::Vector2 NavigationColliderElement::GetClosestPoint(const Elite::Vector2& pos) const
 {

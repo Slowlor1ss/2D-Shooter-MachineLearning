@@ -2,6 +2,8 @@
 #define DYNAMIC_Q_LEARNING
 
 class Wander;
+class Seek;
+class BlendedSteering;
 class SteeringAgent;
 class Population;
 class Population2;
@@ -29,10 +31,19 @@ private:
 	Population2* m_pPopulation;
 	static constexpr int m_EnemiesSize = 10;
 	std::vector<SteeringAgent*> m_Enemies;
-	Wander* m_Wander;
+	//Pursuit* m_Wander;
+
+	//Blended steering
+	SteeringAgent* m_pDrunkAgent = nullptr;
+	BlendedSteering* m_pBlendedSteering = nullptr;
+	Wander* m_pDrunkWander = nullptr;
+	//Wander* m_pWander = nullptr;//
+	//SteeringAgent* m_pWanderAgent = nullptr;
+	Seek* m_pSeek = nullptr;
+
 
 	//--Level--
-	static constexpr float m_TrimWorldSize = 150.f;
+	static constexpr float m_TrimWorldSize = 100.f;
 
 	//int m_MemorySize;
 	//int m_NrOfInputs;

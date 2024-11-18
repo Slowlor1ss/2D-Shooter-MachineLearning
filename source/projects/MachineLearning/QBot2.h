@@ -5,6 +5,7 @@
 #include "projects/Shared/BaseAgent.h"
 #include "projects/Shared/NavigationColliderElement.h"
 #include "framework/EliteMath/EVector2.h"
+#include <optional>
 
 using namespace Elite;
 class SteeringAgent;
@@ -48,11 +49,15 @@ public:
 
 	FMatrix* GetBotBrain() { return &m_BotBrain; }
 	FMatrix GetRawBotBrain() { return m_BotBrain; }
+
+	// Used for ImGui
 	float GetAge() const { return m_Age; }
-	int GetFoodEaten() const { return m_FoodEaten; }
 	int GetWallsHit() const { return m_WallsHit; }
-	int GetHits() const { return m_EnemiesHit; }
-	int GetMisses() const { return m_EnemiesMisses; }
+	float GetWallsAvoidedValue() const { return m_WallsAvoidedValue; }
+	float GetEnemyPursuitValue() const { return m_EnemyPursuitValue; }
+	float GetExplorationValue() const { return m_ExplorationValue; }
+	//int GetHits() const { return m_EnemiesHit; }
+	//int GetMisses() const { return m_EnemiesMisses; }
 	float GetHealth() const { return m_Health; }
 
 	//void SetBotBrain(const FMatrix& brain) { m_BotBrain.Set(brain); }
@@ -82,6 +87,7 @@ private:
 	void UpdateBot(const std::vector<SteeringAgent*>& enemies, Vector2 dir, float deltaTime);
 	void UpdateNavigation(const Vector2& dir, const float&angleStep, float deltaTime);
 	void UpdateEnemy(const std::vector<SteeringAgent*>& enemies, Vector2 dir, float angleStep, float deltaTime);
+	void UpdateQMatrix(float deltaTime);
 
 	std::tuple<float, float, float> SelectAction() const;
 	std::tuple<float, float, float> Predict() const;
@@ -92,15 +98,17 @@ private:
 	Vector2 m_StartLocation;
 	Vector2 m_CurrentPos;
 	Vector2 m_PrevPos;
+	Vector2 m_FirstMemPos; // The position of the agent when currentindex == 0
+	Vector2 m_SecMemDist{}; // The position of the agent one second ago
 	float m_CurrSpeed{0.f};
 	float m_Angle{};
 	float m_FOV;
-	float m_MaxDistance = 50.0f; // View distance
+	float m_MaxDistance = 30.0f; // View distance
 
 	Color m_AliveColor;
 	Color m_DeadColor;
 
-	float m_MaxSpeed{ 30.0f };
+	float m_MaxSpeed{ 10.0f };
 	float m_MaxAngleChange{};
 	float m_Health{ 100.0f };
 	bool m_Alive = true;
@@ -112,20 +120,35 @@ private:
 	float m_AngleStep;
 
 	// fitness members
-	//float m_TimeOfDeath = 0;
-	int m_FoodEaten{};
+	struct EnemySeen
+	{
+		const SteeringAgent* enemy{nullptr};
+		const float distSqrd{};
+	};
+	std::optional<EnemySeen> m_EnemySeen;
+	struct WallSeen
+	{
+		const NavigationColliderElement* wall{nullptr};
+		const float orentation{};
+		const float distSqrd{};
+		const Vector2 wallNormal{};
+	};
+	std::optional<WallSeen> m_WallSeen;
+
 	int m_WallsHit{};
-	int m_EnemiesHit{};
-	int m_EnemiesMisses{};
+	float m_WallsAvoidedValue{};
+	float m_EnemyPursuitValue{};
+	float m_ExplorationValue{};
+	//int m_EnemiesHit{};
+	//int m_EnemiesMisses{};
 	int m_EnemiesSeen{};
 
 	float m_EnemiesHitWeight{ 10.f };
 	float m_EnemiesMissedWeight{ 1.f };
-	float m_WallsHitWeight{ 0.5f };
+	float m_WallsHitWeight{ 0.001f };
 
 	float m_Fitness{};
 	float m_FitnessNormalized{};
-	float m_DistanceClosestEnemyAtDeathSqrd{};
 
 	/// <summary>
 	/// INPUT - OUTPUT VARIABLES
@@ -159,9 +182,6 @@ private:
 	FMatrix* m_ActionMatrixMemoryArr;
 	FMatrix m_BotBrain;
 	FMatrix m_DeltaBotBrain;
-	FMatrix m_MatAngle;
-	FMatrix m_MatSpeed;
-	int m_SShoot[2]{};
 
 	// Q-factors, enable usage for different learning parameters for positive or for negative reinforcement.
 	float m_NegativeQBig{ -0.001f };
@@ -170,15 +190,5 @@ private:
 	float m_PositiveQSmall{ 0.00001f };
 	float m_PositiveQ{ 0.0001f };
 	float m_PositiveQBig{ 0.001f };
-
-
-	int m_CameCloseCounter{ 50 };
-	int m_MoveAroundCounter{ 2000 };
-	Vector2 m_prevPos;
-	int m_WallCheckCounter{ 100 };
-	bool m_Shoot{ false };
-	int m_ShootCounter{ 10 };
-	float m_SeenCounter{ 1 };
-	bool m_IsEnemyBehindWall{ false };
 };
 

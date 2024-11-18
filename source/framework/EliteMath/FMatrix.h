@@ -60,10 +60,9 @@ namespace Elite
 				__debugbreak();
 			}
 		}
-#pragma optimize("", on)
 		void SetAllZero() const
 		{
-			std::memset(m_Data, 0, m_Size * sizeof(float));
+			std::memset(m_Data, 0.0f, m_Size * sizeof(float));
 		}
 		//	void SetAll(const float value) const
 		//{
@@ -72,7 +71,7 @@ namespace Elite
 		//		m_Data[i] = value;
 		//	}
 		//}
-		void SetAll(const float value) const
+		void SetAll(const float value) const // Test this code better
 		{
 			int size = m_Size;
 			__m256 val = _mm256_set1_ps(value);  // Create a 256-bit vector filled with `value`
@@ -89,6 +88,7 @@ namespace Elite
 				m_Data[i] = value;
 			}
 		}
+#pragma optimize("", on)
 		void SetRowAll(const int row, const float value) const
 		{
 			for (int c = 0; c < m_Columns; ++c) 

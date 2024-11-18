@@ -28,14 +28,14 @@ Population2::Population2(int size, float worldSize, int nrOfFood, int memorySize
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(0.0f, worldSize + hBlockSize), worldSize * 2.0f, blockSize));
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(0.0f, -worldSize - hBlockSize), worldSize * 2.0f, blockSize));
 
-		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -50.0f + (6 / 2.f)), 36, 3));
-		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (76 / 2.f), -28.0f + (6 / 2.f)), 76, 3));
-		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(18.0f + (36 / 2.f), -28.0f + (6 / 2.f)), 36, 3));
-		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -6.0f + (6 / 2.f)), 36, 3));
-		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-35.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
-		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
-		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (84 / 2.f), 43.0f + (6 / 2.f)), 84, 3));
-		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 43.0f + (6 / 2.f)), 36, 3));
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -50.0f + (6 / 2.f)), 36, 3));
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (76 / 2.f), -28.0f + (6 / 2.f)), 76, 3));
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(18.0f + (36 / 2.f), -28.0f + (6 / 2.f)), 36, 3));
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -6.0f + (6 / 2.f)), 36, 3));
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-35.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (84 / 2.f), 43.0f + (6 / 2.f)), 84, 3));
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 43.0f + (6 / 2.f)), 36, 3));
 	}
 
 	//std::vector<float> foodX{};
@@ -267,8 +267,11 @@ void Population2::UpdateImGui()
 		ImGui::Text("Agent Info");
 		ImGui::SliderInt("Agent Index", &m_BotInfoIndex, 0, m_Bots.size() - 1);
 		ImGui::Text("Walls Hit: %i", m_Bots[m_BotInfoIndex]->GetWallsHit());
-		ImGui::Text("Hits: %i", m_Bots[m_BotInfoIndex]->GetHits());
-		ImGui::Text("Misses: %i", m_Bots[m_BotInfoIndex]->GetMisses());
+		//ImGui::Text("Hits: %i", m_Bots[m_BotInfoIndex]->GetHits());
+		//ImGui::Text("Misses: %i", m_Bots[m_BotInfoIndex]->GetMisses());
+		ImGui::Text("Walls Avoided Value: %.4f", m_Bots[m_BotInfoIndex]->GetWallsAvoidedValue());
+		ImGui::Text("Enemy Pursuit Value: %.4f", m_Bots[m_BotInfoIndex]->GetEnemyPursuitValue());
+		ImGui::Text("Exploration Value: %.2f", m_Bots[m_BotInfoIndex]->GetExplorationValue());
 		ImGui::Text("Health: %.2f", m_Bots[m_BotInfoIndex]->GetHealth());
 		ImGui::Text("Survive Time: %.1f", m_Bots[m_BotInfoIndex]->GetAge());
 
