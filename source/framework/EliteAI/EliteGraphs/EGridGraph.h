@@ -20,10 +20,10 @@ namespace Elite
 		GridGraph(int columns, int rows, int cellSize, bool isDirectionalGraph, bool isConnectedDiagonally, float costStraight = 1.f, float costDiagonal = 1.5);
 		void InitializeGrid(int columns, int rows, int cellSize, bool isDirectionalGraph, bool isConnectedDiagonally, float costStraight = 1.f, float costDiagonal = 1.5);
 
-		using IGraph::GetNode;
-		T_NodeType* GetNode(int col, int row) const { return m_Nodes[GetIndex(col, row)]; }
-		const ConnectionList& GetConnections(const T_NodeType& node) const { return m_Connections[node.GetIndex()]; }
-		const ConnectionList& GetConnections(int idx) const { return m_Connections[idx]; }
+		using IGraph<T_NodeType, T_ConnectionType>::GetNode;
+		T_NodeType* GetNode(int col, int row) const { return this->m_Nodes[GetIndex(col, row)]; }
+		const typename IGraph<T_NodeType, T_ConnectionType>::ConnectionList& GetConnections(const T_NodeType& node) const { return this->m_Connections[node.GetIndex()]; }
+		const typename IGraph<T_NodeType, T_ConnectionType>::ConnectionList& GetConnections(int idx) const { return this->m_Connections[idx]; }
 
 		int GetRows() const { return m_NrOfRows; }
 		int GetColumns() const { return m_NrOfColumns; }
@@ -32,11 +32,11 @@ namespace Elite
 		int GetIndex(int col, int row) const { return row * m_NrOfColumns + col; }
 
 		// returns the column and row of the node in a Vector2
-		using IGraph::GetNodePos;
+		using IGraph<T_NodeType, T_ConnectionType>::GetNodePos;
 		virtual Vector2 GetNodePos(T_NodeType* pNode) const override;
 
 		// returns the actual world position of the node
-		using IGraph::GetNodeWorldPos;
+		using IGraph<T_NodeType, T_ConnectionType>::GetNodeWorldPos;
 		Vector2 GetNodeWorldPos(int col, int row) const;
 		Vector2 GetNodeWorldPos(int idx) const override;
 
@@ -107,7 +107,7 @@ namespace Elite
 		float costStraight /* = 1.f*/,
 		float costDiagonal /* = 1.5f */)
 	{
-		m_IsDirectionalGraph = isDirectionalGraph;
+		this->m_IsDirectionalGraph = isDirectionalGraph;
 		m_NrOfColumns = columns;
 		m_NrOfRows = rows;
 		m_CellSize = cellSize;
@@ -155,7 +155,7 @@ namespace Elite
 			AddConnectionsInDirections(idx, col, row, m_DiagonalDirections);
 		}
 
-		OnGraphModified(false, true);
+		this->OnGraphModified(false, true);
 	}
 
 	template<class T_NodeType, class T_ConnectionType>
@@ -178,9 +178,9 @@ namespace Elite
 				int neighborIdx = neighborRow * m_NrOfColumns + neighborCol;
 				float connectionCost = CalculateConnectionCost(idx, neighborIdx);
 
-				if (IsUniqueConnection(idx, neighborIdx) 
+				if (this->IsUniqueConnection(idx, neighborIdx) 
 					&& connectionCost < 100000) //Extra check for different terrain types
-					AddConnection(new GraphConnection(idx, neighborIdx, connectionCost));
+					this->AddConnection(new GraphConnection(idx, neighborIdx, connectionCost));
 			}
 		}
 	}

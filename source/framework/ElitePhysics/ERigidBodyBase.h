@@ -39,6 +39,7 @@ namespace Elite
 
 		void AddCollisionFiltering(CollisionCategories collisionCategories = Elite::AGENT_CATEGORY);
 
+		void SetActive(bool flag);
 		internalTransformType GetTransform();
 		void SetTransform(const internalTransformType& transform);
 		translationType GetPosition();

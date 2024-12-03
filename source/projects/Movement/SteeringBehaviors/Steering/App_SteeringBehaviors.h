@@ -5,6 +5,10 @@
 //-----------------------------------------------------------------
 #include "framework/EliteInterfaces/EIApp.h"
 #include "SteeringBehaviors.h"
+#include <vector>
+#include <projects/Shared/Utils_General.h>
+#include <string>
+
 class SteeringAgent;
 class Obstacle;
 
@@ -49,7 +53,7 @@ private:
 
 	//Datamembers
 	std::vector<ImGui_Agent> m_AgentVec = {};
-	std::vector<string> m_TargetLabelsVec = {};
+	std::vector<std::string> m_TargetLabelsVec = {};
 	TargetData m_Target = {};
 	bool m_VisualizeTarget = true;
 	bool m_IsInitialized = false;
@@ -63,8 +67,8 @@ private:
 	const float m_MinObstacleDistance = 10.f;
 
 	//Interface Functions
-	void RemoveAgent(UINT index);
-	ImGui_Agent App_SteeringBehaviors::AddAgent(BehaviorTypes behaviorType = BehaviorTypes::Wander, int targetId = -1, bool autoOrient = true, float mass = 1.f, float maxSpd = 7.f);
+	void RemoveAgent(unsigned int index);
+	ImGui_Agent AddAgent(BehaviorTypes behaviorType = BehaviorTypes::Wander, int targetId = -1, bool autoOrient = true, float mass = 1.f, float maxSpd = 7.f);
 	void SetAgentBehavior(ImGui_Agent& a);
 	void UpdateTarget(ImGui_Agent& a);
 	void UpdateTargetLabel();

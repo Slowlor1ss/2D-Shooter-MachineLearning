@@ -68,6 +68,12 @@ DynamicQLearning::~DynamicQLearning()
 		SAFE_DELETE(m_pSeek);
 	}
 }
+
+void DynamicQLearning::UpdateUI(const float deltaTime) const
+{
+	m_pPopulation->UpdateUI(deltaTime);
+}
+
 void DynamicQLearning::Update(const float deltaTime) const
 {
 	if (SettingsRL::m_TrainShooting)

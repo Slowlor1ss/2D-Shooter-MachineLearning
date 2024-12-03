@@ -152,7 +152,7 @@ void Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::AddCollisionFiltering
 	{
 		filter.categoryBits = ENEMY_CATEGORY;
 		// Collide with everything for now
-		filter.maskBits = WALL_CATEGORY | AGENT_CATEGORY | ENEMY_CATEGORY;
+		filter.maskBits = WALL_CATEGORY /*| AGENT_CATEGORY*/ | ENEMY_CATEGORY;
 	}
 
 	if (m_vFixtures.empty())
@@ -169,6 +169,12 @@ template <>
 void Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::Initialize()
 {
 	//Do nothing
+}
+
+template<>
+void Elite::RigidBodyBase<Elite::Vector2, Elite::Vector2>::SetActive(bool flag)
+{
+	static_cast<b2Body*>(m_pBody)->SetActive(flag);
 }
 
 template<>

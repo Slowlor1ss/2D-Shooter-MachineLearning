@@ -53,29 +53,43 @@ void PhysicsWorld::Simulate(float elapsedTime)
 	if (!m_pPhysicsWorld)
 		return;
 
-	Box2DPhysicsSettings physicsSettings;
-	physicsSettings.velocityIterations = 10;
-	physicsSettings.positionIterations = 4;
-	physicsSettings.hz = 30;
-
-	//physicsSettings.velocityIterations += TIMER->GetSpeed();
-	//physicsSettings.positionIterations += TIMER->GetSpeed();
-	physicsSettings.hz = int((physicsSettings.hz/**TIMER->GetSpeed()*/));
-	//physicsSettings.hz = physicsSettings.hz < 30 ? 30 : physicsSettings.hz;
-	//std::cout << physicsSettings.hz << '\n';
-
-	//physicsSettings.hz = 120.f;
-	float frameTime = physicsSettings.hz > 0.0f ? 1.0f / physicsSettings.hz : float32(1.f / 60.f);
-	//frameTime *= TIMER->GetSpeed();
-	//if (elapsedTime > 0.25f)
-	//	elapsedTime = 0.25f;
-
-	m_FrameTimeAccumulator += elapsedTime;
-
-	while (m_FrameTimeAccumulator >= frameTime)
+	if (false) // TODO: add if fixed timestep
 	{
-		m_pPhysicsWorld->Step(frameTime, physicsSettings.velocityIterations, physicsSettings.positionIterations);
-		m_FrameTimeAccumulator -= frameTime;
+		Box2DPhysicsSettings physicsSettings;
+		physicsSettings.velocityIterations = 10;
+		physicsSettings.positionIterations = 4;
+		physicsSettings.hz = 30;
+
+		//physicsSettings.velocityIterations += TIMER->GetSpeed();
+		//physicsSettings.positionIterations += TIMER->GetSpeed();
+		physicsSettings.hz = int((physicsSettings.hz/**TIMER->GetSpeed()*/));
+		//physicsSettings.hz = physicsSettings.hz < 30 ? 30 : physicsSettings.hz;
+		//std::cout << physicsSettings.hz << '\n';
+
+		//physicsSettings.hz = 120.f;
+		float frameTime = physicsSettings.hz > 0.0f ? 1.0f / physicsSettings.hz : float32(1.f / 60.f);
+		//frameTime *= TIMER->GetSpeed();
+		//if (elapsedTime > 0.25f)
+		//	elapsedTime = 0.25f;
+
+		m_FrameTimeAccumulator += elapsedTime;
+
+		while (m_FrameTimeAccumulator >= frameTime)
+		{
+			m_pPhysicsWorld->Step(frameTime, physicsSettings.velocityIterations, physicsSettings.positionIterations);
+			m_FrameTimeAccumulator -= frameTime;
+		}
+	}
+	else
+	{
+		Box2DPhysicsSettings physicsSettings;
+		physicsSettings.velocityIterations = 10;
+		physicsSettings.positionIterations = 4;
+		physicsSettings.hz = 1/elapsedTime;
+
+		//m_FrameTimeAccumulator += elapsedTime;
+		m_pPhysicsWorld->Step(elapsedTime, physicsSettings.velocityIterations, physicsSettings.positionIterations);
+		//m_FrameTimeAccumulator -= frameTime;
 	}
 }
 

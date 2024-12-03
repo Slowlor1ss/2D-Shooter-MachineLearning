@@ -87,7 +87,7 @@ StringPP StringPP::SurroundLetters(const std::string& surround) const
 {
 	StringPP str{ *this };
 	std::string temp{};
-	for (int i = 0; i < str.length(); i++)
+	for (size_t i = 0; i < str.length(); i++)
 	{
 		//Using += To avoid string concatenation resulting in allocation of unnecessary temporary stings
 		temp += surround + str[i] += surround;

@@ -19,14 +19,15 @@ public:
 	Population2& operator=(const Population2&) = delete;
 	Population2& operator=(Population2&&) noexcept = delete;
 
+	void UpdateUI(float deltaTime);
 	void Update(float deltaTime, const std::vector<SteeringAgent*>& enemies);
-	void Render(float deltaTime, const std::vector<SteeringAgent*>& enemies) const;
+	void Render(float deltaTime, const std::vector<SteeringAgent*>& enemies);
 
 private:
 	void NormalizeFitness() const;
 	float CalculateFitnessSum() const;
 	float CalculateFitnessSum(unsigned int from, unsigned int to) const;
-	Elite::FMatrix* SelectParentFPS(float sum) const;
+	Elite::FMatrix<bfloat>* SelectParentFPS(bfloat sum) const;
 	void SelectParentSUS(const float sum) const;
 	void UpdateImGui();
 

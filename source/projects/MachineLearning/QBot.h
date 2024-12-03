@@ -49,8 +49,8 @@ public:
 	float CalculateInverseDistance(float realDist) const;
 	void UniformCrossover(QBot* otherBrain);
 
-	FMatrix* GetBotBrain() { return &m_BotBrain; }
-	FMatrix GetRawBotBrain() { return m_BotBrain; }
+	FMatrix<>* GetBotBrain() { return &m_BotBrain; }
+	FMatrix<> GetRawBotBrain() { return m_BotBrain; }
 	float GetAge() const { return m_Age; }
 	int GetFoodEaten() const { return m_FoodEaten; }
 	int GetWallsHit() const { return m_WallsHit; }
@@ -58,8 +58,8 @@ public:
 	int GetMisses() const { return m_EnemiesMisses; }
 	float GetHealth() const { return m_Health; }
 
-	//void SetBotBrain(const FMatrix& brain) { m_BotBrain.Set(brain); }
-	void SetBotBrain(const FMatrix* brain) { m_BotBrain.Set(brain); }
+	//void SetBotBrain(const FMatrix<>& brain) { m_BotBrain.Set(brain); }
+	void SetBotBrain(const FMatrix<>* brain) { m_BotBrain.Set(brain); }
 	void SetObstacles(const std::vector<NavigationColliderElement*>& obstacles)
 	{
 		m_vNavigationColliders = obstacles;
@@ -136,12 +136,12 @@ private:
 	// so that the render method also has the correct currentIndex. But make sure
 	// the matrices at 0 are also filled in, otherwise problems.
 	int currentIndex{ -1 };
-	FMatrix* m_StateMatrixMemoryArr;
-	FMatrix* m_ActionMatrixMemoryArr;
-	FMatrix m_BotBrain;
-	FMatrix m_DeltaBotBrain;
-	FMatrix m_SAngle;
-	FMatrix m_SSpeed;
+	FMatrix<>* m_StateMatrixMemoryArr;
+	FMatrix<>* m_ActionMatrixMemoryArr;
+	FMatrix<> m_BotBrain;
+	FMatrix<> m_DeltaBotBrain;
+	FMatrix<> m_SAngle;
+	FMatrix<> m_SSpeed;
 	int m_SShoot[2];
 
 	// Q-factors, enable usage for different learning parameters for positive or for negative reinforcement.

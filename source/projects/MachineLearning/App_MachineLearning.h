@@ -13,6 +13,7 @@ public:
 
 	//App Functions
 	void Start() override;
+	void UpdateUI(float deltaTime);
 	void Update(float deltaTime) override;
 	void Render(float deltaTime) const override;
 

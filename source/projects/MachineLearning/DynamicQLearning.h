@@ -19,6 +19,7 @@ public:
 	DynamicQLearning& operator=(const DynamicQLearning&) = delete;
 	DynamicQLearning& operator=(DynamicQLearning&&) noexcept = delete;
 
+	void UpdateUI(float deltaTime) const;
 	void Update(float deltaTime) const;
 	void Render(float deltaTime) const;
 

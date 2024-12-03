@@ -7,9 +7,11 @@
 
 #pragma once
 
+#include <list>
 #include "EGraphNodeTypes.h"
 #include "EGraphConnectionTypes.h"
 #include <memory>
+#include <algorithm>
 
 namespace Elite
 {
@@ -371,10 +373,10 @@ namespace Elite
 		auto isConnectionToThisNode = [idx](T_ConnectionType* pCon) { return pCon->GetTo() == idx; };
 		for (auto& c : m_Connections)
 		{
-			list<T_ConnectionType*>::iterator foundIt;
-			while ((foundIt = std::find_if(c.begin(), c.end(), isConnectionToThisNode))	!= c.end())
+			typename std::list<T_ConnectionType*>::iterator foundIt;
+			while ((foundIt = std::find_if(c.begin(), c.end(), isConnectionToThisNode)) != c.end())
 			{
-				delete *foundIt;
+				delete* foundIt;
 				c.erase(foundIt);
 			}
 		}

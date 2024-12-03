@@ -42,7 +42,7 @@ void NavigationColliderElement::RenderElement()
 Elite::Vector2 NavigationColliderElement::CalculateNormal(const Elite::Vector2& pos) const
 {
 	// Identify which edge the point lies on
-	if (pos.x < m_Left && pos.y > m_Top) // top-left corner
+	/*if (pos.x < m_Left && pos.y > m_Top) // top-left corner
 	{
 		return { -1, 1 }; // Normal pointing diagonally from the corner
 	}
@@ -58,7 +58,7 @@ Elite::Vector2 NavigationColliderElement::CalculateNormal(const Elite::Vector2& 
 	{
 		return { 1, -1 }; // Normal pointing diagonally from the corner
 	}
-	else if (pos.y > m_Top) // top side
+	else*/if (pos.y > m_Top) // top side
 	{
 		return { 0, 1 }; // Normal pointing up
 	}

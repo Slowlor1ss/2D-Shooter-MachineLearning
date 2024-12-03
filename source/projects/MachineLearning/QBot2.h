@@ -33,6 +33,7 @@ public:
 
 	bool IsAlive() const;
 	void Reset();
+	void ResetPredictiveEnemyPos();
 	//Fitness from last death
 	float GetRawFitness() const { return m_Fitness; }
 
@@ -47,8 +48,8 @@ public:
 	float CalculateInverseDistance(float realDist) const;
 	void UniformCrossover(QBot2* otherBrain);
 
-	FMatrix* GetBotBrain() { return &m_BotBrain; }
-	FMatrix GetRawBotBrain() { return m_BotBrain; }
+	FMatrix<bfloat>* GetBotBrain() { return &m_BotBrain; }
+	FMatrix<bfloat> GetRawBotBrain() { return m_BotBrain; }
 
 	// Used for ImGui
 	float GetAge() const { return m_Age; }
@@ -56,12 +57,13 @@ public:
 	float GetWallsAvoidedValue() const { return m_WallsAvoidedValue; }
 	float GetEnemyPursuitValue() const { return m_EnemyPursuitValue; }
 	float GetExplorationValue() const { return m_ExplorationValue; }
+	float GetRotationCostValue() const { return m_RotationCostValue; }
 	//int GetHits() const { return m_EnemiesHit; }
 	//int GetMisses() const { return m_EnemiesMisses; }
 	float GetHealth() const { return m_Health; }
 
-	//void SetBotBrain(const FMatrix& brain) { m_BotBrain.Set(brain); }
-	void SetBotBrain(const FMatrix* brain) { m_BotBrain.Set(brain); }
+	//void SetBotBrain(const FMatrix<>& brain) { m_BotBrain.Set(brain); }
+	void SetBotBrain(const FMatrix<bfloat>* brain) { m_BotBrain.Set(brain); }
 	void SetObstacles(const std::vector<NavigationColliderElement*>& obstacles)
 	{
 		m_vNavigationColliders = obstacles;
@@ -88,6 +90,7 @@ private:
 	void UpdateNavigation(const Vector2& dir, const float&angleStep, float deltaTime);
 	void UpdateEnemy(const std::vector<SteeringAgent*>& enemies, Vector2 dir, float angleStep, float deltaTime);
 	void UpdateQMatrix(float deltaTime);
+	void HandleWallQValue(float deltaTime);
 
 	std::tuple<float, float, float> SelectAction() const;
 	std::tuple<float, float, float> Predict() const;
@@ -103,12 +106,12 @@ private:
 	float m_CurrSpeed{0.f};
 	float m_Angle{};
 	float m_FOV;
-	float m_MaxDistance = 30.0f; // View distance
+	float m_MaxDistance = 40.0f; // View distance
 
 	Color m_AliveColor;
 	Color m_DeadColor;
 
-	float m_MaxSpeed{ 10.0f };
+	float m_MaxSpeed{ 15.0f };
 	float m_MaxAngleChange{};
 	float m_Health{ 100.0f };
 	bool m_Alive = true;
@@ -117,13 +120,15 @@ private:
 	float m_distCooldown{};
 	float m_WallHitCooldown{};
 
-	float m_AngleStep;
+	float m_AngleStep; // Wall detection
+	float m_EnemyAngleStep; // Enemy detection
 
 	// fitness members
 	struct EnemySeen
 	{
 		const SteeringAgent* enemy{nullptr};
 		const float distSqrd{};
+		const bool isLookingAtEnemy{false};
 	};
 	std::optional<EnemySeen> m_EnemySeen;
 	struct WallSeen
@@ -139,6 +144,7 @@ private:
 	float m_WallsAvoidedValue{};
 	float m_EnemyPursuitValue{};
 	float m_ExplorationValue{};
+	float m_RotationCostValue{};
 	//int m_EnemiesHit{};
 	//int m_EnemiesMisses{};
 	int m_EnemiesSeen{};
@@ -154,13 +160,15 @@ private:
 	/// INPUT - OUTPUT VARIABLES
 	/// </summary>
 
-	int m_NrOfInputs{10}; // States
+	int m_NrOfInputs{14}; // States
 
 	const int m_InputRotationIndex{0};
 	const int m_InputSpeedIndex{1};
-	const int m_InputEnemySeenIndex{2};
-	const int m_InputEnemyDistIndex{3};
-	const std::vector<int> m_InputObstacleProxIndices{4,5,6,7,8,9};
+	//const int m_InputEnemySeenIndex{2};
+	//const int m_InputEnemyDistIndex{3};
+	const std::vector<int> m_InputEnemyDistIndex{2,3,4,5,6,7};
+	std::vector<float> m_EnemySensorsInRad;
+	const std::vector<int> m_InputObstacleProxIndices{8,9,10,11,12,13};
 	std::vector<float> m_ObstacleSensorsInRad;
 
 	int m_NrOfOutputs{ 8 }; // Actions
@@ -178,10 +186,10 @@ private:
 	// so that the render method also has the correct currentIndex. But make sure
 	// the matrices at 0 are also filled in, otherwise problems.
 	int currentIndex{ -1 };
-	FMatrix* m_StateMatrixMemoryArr;
-	FMatrix* m_ActionMatrixMemoryArr;
-	FMatrix m_BotBrain;
-	FMatrix m_DeltaBotBrain;
+	FMatrix<bfloat>* m_StateMatrixMemoryArr;
+	FMatrix<bfloat>* m_ActionMatrixMemoryArr;
+	FMatrix<bfloat> m_BotBrain;
+	FMatrix<bfloat> m_DeltaBotBrain;
 
 	// Q-factors, enable usage for different learning parameters for positive or for negative reinforcement.
 	float m_NegativeQBig{ -0.001f };
@@ -190,5 +198,8 @@ private:
 	float m_PositiveQSmall{ 0.00001f };
 	float m_PositiveQ{ 0.0001f };
 	float m_PositiveQBig{ 0.001f };
+
+	static constexpr float SAFE_MAX = 1e5f; // Choose a safe upper bound
+	static constexpr float SAFE_MIN = -1e5f; // Choose a safe lower bound
 };
 

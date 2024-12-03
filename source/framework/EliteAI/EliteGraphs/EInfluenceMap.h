@@ -10,7 +10,7 @@ namespace Elite
 	{
 	public:
 		InfluenceMap(bool isDirectional): T_GraphType(isDirectional) {}
-		void InitializeBuffer() { m_InfluenceDoubleBuffer = vector<float>(m_Nodes.size()); }
+		void InitializeBuffer() { m_InfluenceDoubleBuffer = vector<float>(this->m_Nodes.size()); }
 		void PropagateInfluence(float deltaTime);
 
 		void SetInfluenceAtPosition(Elite::Vector2 pos, float influence);
@@ -51,7 +51,7 @@ namespace Elite
 	{
 		if (m_TimeSinceLastPropagation >= m_PropagationInterval)
 		{
-			for (auto* pNode : m_Nodes)
+			for (auto* pNode : this->m_Nodes)
 			{
 				auto nodeIndex = pNode->GetIndex();
 				float highestInfluence{};
@@ -73,8 +73,8 @@ namespace Elite
 			}
 			for (size_t i {0}; i < m_InfluenceDoubleBuffer.size(); ++i)
 			{
-				if (IsNodeValid(i))
-					GetNode(i)->SetInfluence(m_InfluenceDoubleBuffer[i]);
+				if (this->IsNodeValid(i))
+					this->GetNode(i)->SetInfluence(m_InfluenceDoubleBuffer[i]);
 			}
 
 			//Update timer
@@ -85,7 +85,7 @@ namespace Elite
 	template <class T_GraphType>
 	inline void InfluenceMap<T_GraphType>::SetInfluenceAtPosition(Elite::Vector2 pos, float influence)
 	{
-		auto idx = GetNodeIdxAtWorldPos(pos);
+		auto idx = this->GetNodeIdxAtWorldPos(pos);
 		if (IsNodeValid(idx))
 			GetNode(idx)->SetInfluence(influence);
 	}
@@ -95,7 +95,7 @@ namespace Elite
 	{
 		const float half = .5f;
 
-		for (auto& pNode : m_Nodes)
+		for (auto& pNode : this->m_Nodes)
 		{
 			Color nodeColor{};
 			float influence = pNode->GetInfluence();

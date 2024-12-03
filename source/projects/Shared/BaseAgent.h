@@ -18,6 +18,8 @@ public:
 	void LimitToWorld(const Elite::Vector2& bounds) const;
 
 	//Get - Set
+	void SetActive(bool flag) { m_pRigidBody->SetActive(flag); }
+
 	Elite::Vector2 GetPosition() const { return m_pRigidBody->GetPosition(); }
 	void SetPosition(const Elite::Vector2& pos) const { m_pRigidBody->SetPosition(pos); }
 	void SetPositionBullet(const Elite::Vector2& pos, float deltatime) const { m_pRigidBody->MoveBullet(pos, deltatime); }

@@ -17,5 +17,8 @@
 #include "EMat22.h"
 #include "FMatrix.h"
 
+_EMIT_STL_WARNING(STL4038, "The contents of <stdfloat> were not availible yet when writing this code");
+typedef float32 bfloat; // TODO: use std::bfloat16_t once visual studio support its
+
 /* --- TYPE DEFINES --- */
 #endif

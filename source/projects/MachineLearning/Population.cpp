@@ -429,7 +429,7 @@ float Population::CalculateFitnessSum(const unsigned int from, unsigned int to) 
 //Code that selects a parent to inherent the brain from,
 //agents with higher fitness will have more chance to pass on their brain than agents with lower fitness
 //Fitness proportionate selection
-FMatrix* Population::SelectParentFPS(const float sum) const
+FMatrix<>* Population::SelectParentFPS(const float sum) const
 {
 	const float rand{ randomFloat(sum) };
 
@@ -452,7 +452,7 @@ FMatrix* Population::SelectParentFPS(const float sum) const
 #pragma optimize("", off)
 void Population::SelectParentSUS(const float sum) const
 {
-	std::vector<FMatrix*> matingPool{};
+	std::vector<FMatrix<>*> matingPool{};
 	std::vector<float> pointers{};
 
 	const auto maxFit{ sum };

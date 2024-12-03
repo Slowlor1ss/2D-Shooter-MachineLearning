@@ -42,8 +42,8 @@ bool gRequestShutdown = false;
 #undef main //Undefine SDL_main as main
 int main(int argc, char* argv[])
 {
-	//auto seed{ (unsigned)time(0) };
-	auto seed{ (unsigned)1731509834 };
+	auto seed{ (unsigned)time(0) };
+	//auto seed{ (unsigned)1731509834 };
 	srand(seed);
 	std::cout << "Seed: " << seed <<'\n';
 
@@ -88,8 +88,10 @@ int main(int argc, char* argv[])
 		//Start Timer
 		TIMER->Start();
 
+#if !defined(ActiveApp_MachineLearning)
 		//Application Creation
 		IApp* myApp = nullptr;
+#endif
 
 #ifdef ActiveApp_Sandbox
 		myApp = new App_Sandbox();
@@ -112,8 +114,8 @@ int main(int argc, char* argv[])
 #elif defined(ActiveApp_InfluenceMap)
 		myApp = new App_InfluenceMap();
 #elif defined(ActiveApp_MachineLearning)
+		App_MachineLearning* myApp = nullptr;
 		myApp = new App_MachineLearning();
-
 #endif
 		ELITE_ASSERT(myApp, "Application has not been created.");
 		//Boot application
@@ -137,13 +139,21 @@ int main(int argc, char* argv[])
 			else
 				pImmediateUI->EventProcessing();
 
+
 			//New frame Immediate UI (Flush)
 			pImmediateUI->NewFrame(pWindow->GetRawWindowHandle(), elapsed);
 
-			//Update (Physics, App)
-			PHYSICSWORLD->Simulate(elapsed);
+			myApp->UpdateUI(elapsed);
+
+			for (size_t i = 0; i < TIMER->GetSpeed(); i++)
+			{
+				//Update (Physics, App)
+				float fixedStep = 1/60.f;
+				PHYSICSWORLD->Simulate(fixedStep);
+				myApp->Update(fixedStep);
+			}
+
 			pCamera->Update();
-			myApp->Update(elapsed);
 
 			if (timeSinceLastUpdate > TimePerFrame)
 			{

@@ -23,11 +23,27 @@ Population2::Population2(int size, float worldSize, int nrOfFood, int memorySize
 		//Create Boundaries
 		constexpr float blockSize{ 5.0f };
 		constexpr float hBlockSize{ blockSize / 2.0f };
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize - hBlockSize, 0.f), blockSize, (worldSize + blockSize) * 2.0f));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(worldSize + hBlockSize, 0.f), blockSize, (worldSize + blockSize) * 2.0f));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(0.0f, worldSize + hBlockSize), worldSize * 2.0f, blockSize));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(0.0f, -worldSize - hBlockSize), worldSize * 2.0f, blockSize));
+
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -50.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (76 / 2.f), -28.0f + (6 / 2.f)), 76, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(18.0f + (36 / 2.f), -28.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -6.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-35.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (84 / 2.f), 43.0f + (6 / 2.f)), 84, 3));
+		//m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 43.0f + (6 / 2.f)), 36, 3));
+
+		// Existing outer walls
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize - hBlockSize, 0.f), blockSize, (worldSize + blockSize) * 2.0f));
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(worldSize + hBlockSize, 0.f), blockSize, (worldSize + blockSize) * 2.0f));
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(0.0f, worldSize + hBlockSize), worldSize * 2.0f, blockSize));
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(0.0f, -worldSize - hBlockSize), worldSize * 2.0f, blockSize));
 
+		// Existing inner walls
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (36 / 2.f), -50.0f + (6 / 2.f)), 36, 3));
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (76 / 2.f), -28.0f + (6 / 2.f)), 76, 3));
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(18.0f + (36 / 2.f), -28.0f + (6 / 2.f)), 36, 3));
@@ -36,6 +52,23 @@ Population2::Population2(int size, float worldSize, int nrOfFood, int memorySize
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 15.0f + (6 / 2.f)), 36, 3));
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-worldSize + (84 / 2.f), 43.0f + (6 / 2.f)), 84, 3));
 		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(34.0f + (36 / 2.f), 43.0f + (6 / 2.f)), 36, 3));
+
+		// Additional walls for complexity
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-20.0f, -10.0f), 20, 3)); // Horizontal wall in the center
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(10.0f, 10.0f), 20, 3));  // Horizontal wall above center
+
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-15.0f, 9.0f), 3, 15)); // Vertical wall connecting paths
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(20.0f, -15.0f), 3, 20)); // Vertical wall on the right
+
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-50.0f, -30.0f), 30, 3)); // Longer horizontal wall on the left
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(50.0f, 30.0f), 40, 3));  // Longer horizontal wall on the right
+
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(-25.0f, 45.0f), 3, 35)); // Vertical wall near top-left
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(40.0f, -40.0f), 3, 40)); // Vertical wall near bottom-right
+
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(0.0f, 60.0f), 50, 3)); // Top-center horizontal wall
+		m_vNavigationColliders.push_back(new NavigationColliderElement(Vector2(0.0f, -60.0f), 50, 3)); // Bottom-center horizontal wall
+
 	}
 
 	//std::vector<float> foodX{};
@@ -53,7 +86,7 @@ Population2::Population2(int size, float worldSize, int nrOfFood, int memorySize
 		const float startAngle = randomFloat(0, static_cast<float>(M_PI) * 2);
 
 		m_Bots.push_back(new QBot2({ 0.f, 0.f }, 0,
-			1.5f, static_cast<float>(M_PI)/2.f, memorySize));
+			1.5f, static_cast<float>(M_PI)*2.f, memorySize));
 		m_Bots.back()->SetObstacles(m_vNavigationColliders);
 	}
 }
@@ -68,12 +101,18 @@ Population2::~Population2()
 	m_vNavigationColliders.clear();
 }
 
-void Population2::Update(const float deltaTime, const std::vector<SteeringAgent*>& enemies)
+void Population2::UpdateUI(const float deltaTime)
 {
 	//Update UI
 	UpdateImGui();
+}
+
+void Population2::Update(const float deltaTime, const std::vector<SteeringAgent*>& enemies)
+{
+	//Update UI
+	//UpdateImGui();
 	//Draw circle around selected bot
-	DEBUGRENDERER2D->DrawCircle(m_Bots[m_BotInfoIndex]->GetPosition(), 5, { 1,0,0 }, 0.1f);
+	//DEBUGRENDERER2D->DrawCircle(m_Bots[m_BotInfoIndex]->GetPosition(), 5, { 1,0,0 }, 0.1f);
 
 	// Check if all bods are dead
 	if (m_DeadCounter == m_Size) //TODO: i think this runs multiple times per round instead of once...
@@ -271,7 +310,8 @@ void Population2::UpdateImGui()
 		//ImGui::Text("Misses: %i", m_Bots[m_BotInfoIndex]->GetMisses());
 		ImGui::Text("Walls Avoided Value: %.4f", m_Bots[m_BotInfoIndex]->GetWallsAvoidedValue());
 		ImGui::Text("Enemy Pursuit Value: %.4f", m_Bots[m_BotInfoIndex]->GetEnemyPursuitValue());
-		ImGui::Text("Exploration Value: %.2f", m_Bots[m_BotInfoIndex]->GetExplorationValue());
+		ImGui::Text("Exploration Value: %.4f", m_Bots[m_BotInfoIndex]->GetExplorationValue());
+		ImGui::Text("Rotation Cost Value: %.4f", m_Bots[m_BotInfoIndex]->GetRotationCostValue());
 		ImGui::Text("Health: %.2f", m_Bots[m_BotInfoIndex]->GetHealth());
 		ImGui::Text("Survive Time: %.1f", m_Bots[m_BotInfoIndex]->GetAge());
 
@@ -284,8 +324,11 @@ void Population2::UpdateImGui()
 
 }
 
-void Population2::Render(const float deltaTime, const std::vector<SteeringAgent*>& enemies) const
+void Population2::Render(const float deltaTime, const std::vector<SteeringAgent*>& enemies)
 {
+	//Draw circle around selected bot
+	DEBUGRENDERER2D->DrawCircle(m_Bots[m_BotInfoIndex]->GetPosition(), 5, { 1,0,0 }, 0.1f);
+
 	for (size_t i{ 0 }; i < m_Bots.size(); ++i)
 	{
 		if (m_Bots[i]->IsAlive())
@@ -343,8 +386,8 @@ void Population2::NormalizeFitness() const
 	for (QBot2* bot : m_Bots)
 	{
 		float firNorm = (bot->GetRawFitness() - minFit) / (maxFit - minFit);
-		if (isnan(firNorm))
-			__debugbreak();
+		/*if (isnan(firNorm))
+			__debugbreak();*/
 		bot->SetNormalizedFitness(firNorm);
 	}
 }
@@ -379,7 +422,7 @@ float Population2::CalculateFitnessSum(const unsigned int from, unsigned int to)
 //Code that selects a parent to inherent the brain from,
 //agents with higher fitness will have more chance to pass on their brain than agents with lower fitness
 //Fitness proportionate selection
-FMatrix* Population2::SelectParentFPS(const float sum) const
+FMatrix<bfloat>* Population2::SelectParentFPS(const bfloat sum) const
 {
 	const float rand{ randomFloat(sum) };
 
@@ -402,16 +445,16 @@ FMatrix* Population2::SelectParentFPS(const float sum) const
 #pragma optimize("", off)
 void Population2::SelectParentSUS(const float sum) const
 {
-	std::vector<FMatrix*> matingPool{};
-	std::vector<float> pointers{};
+	std::vector<FMatrix<bfloat>*> matingPool{};
+	std::vector<bfloat> pointers{};
 
 	const auto maxFit{ sum };
-	const int num = (float)m_Size * 0.2f; //Number of offspring to keep
-	const auto dist = maxFit / static_cast<float>(num);
+	const int num = (bfloat)m_Size * 0.2f; //Number of offspring to keep
+	const auto dist = maxFit / static_cast<bfloat>(num);
 	const auto start = randomFloat(0, dist); // TODO: what is dist is lower then 0?
 	for (size_t i{ 0 }; i < num; ++i)
 	{
-		pointers.push_back(start + static_cast<float>(i) * dist);
+		pointers.push_back(start + static_cast<bfloat>(i) * dist);
 	}
 
 	for (size_t i{ 0 }; i < pointers.size(); ++i)

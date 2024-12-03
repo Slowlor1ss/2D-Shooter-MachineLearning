@@ -4,8 +4,10 @@
 /*=============================================================================*/
 // FMatrix.cpp: FMatrix class
 /*=============================================================================*/
-#ifndef ELITE_MATH_FMATRIX
-#define	ELITE_MATH_FMATRIX
+#ifndef ELITE_MATH_FMatrix
+#define	ELITE_MATH_FMatrix
+
+#undef max
 
 #include <random>
 
@@ -14,10 +16,15 @@
 
 namespace Elite 
 {
-	class FMatrix final
+
+	template <typename T>
+	concept Arithmetic = std::is_arithmetic_v<T>;
+
+	template<Arithmetic T = float>
+	class FMatrix
 	{
 	private:
-		float* m_Data;
+		T* m_Data{};
 		int m_Rows{}, m_Columns{};
 		int m_Size{};
 		int rcToIndex(int r, int c) const
@@ -29,7 +36,7 @@ namespace Elite
 		FMatrix(int rows, int columns): 
 			m_Rows(rows),
 			m_Columns(columns),
-			m_Data(new float[rows * columns]),
+			m_Data(new T[rows * columns]),
 			m_Size(rows * columns)
 		{}
 
@@ -44,10 +51,10 @@ namespace Elite
 			m_Rows = nrOfRows;
 			m_Columns = nrOfColumns;
 			m_Size = m_Rows * m_Columns;
-			m_Data = new float[m_Size];
+			m_Data = new T[m_Size];
 		}
 #pragma optimize("", off)
-		void Set(const int row, const int column, const float value) const
+		void Set(const int row, const int column, const T value) const
 		{
 			const int index = rcToIndex(row, column);
 			if (index > -1 && index < m_Size) 
@@ -62,16 +69,16 @@ namespace Elite
 		}
 		void SetAllZero() const
 		{
-			std::memset(m_Data, 0.0f, m_Size * sizeof(float));
+			std::memset(m_Data, T{}, m_Size * sizeof(T));
 		}
-		//	void SetAll(const float value) const
+		//	void SetAll(const T value) const
 		//{
 		//	for (int i = 0; i < m_Size; ++i)
 		//	{
 		//		m_Data[i] = value;
 		//	}
 		//}
-		void SetAll(const float value) const // Test this code better
+		void SetAll(const T value) const // Test this code better
 		{
 			int size = m_Size;
 			__m256 val = _mm256_set1_ps(value);  // Create a 256-bit vector filled with `value`
@@ -89,7 +96,7 @@ namespace Elite
 			}
 		}
 #pragma optimize("", on)
-		void SetRowAll(const int row, const float value) const
+		void SetRowAll(const int row, const T value) const
 		{
 			for (int c = 0; c < m_Columns; ++c) 
 			{
@@ -97,7 +104,7 @@ namespace Elite
 			}
 		}
 #pragma optimize("", off)
-		void Add(const int row, const int column, const float toAdd) const
+		void Add(const int row, const int column, const T toAdd) const
 		{
 			const int index = rcToIndex(row, column);
 			if (index > -1 && index < m_Size) {
@@ -111,22 +118,27 @@ namespace Elite
 		}
 #pragma optimize("", on)
 
-		float Get(const int row, const int column) const
+		T Get(const int row, const int column) const
 		{
 			const int index = rcToIndex(row, column);
 			if (index > -1 && index < m_Size) {
 				return m_Data[index];
 			}
 			else {
+				__debugbreak();
 				return -1;
 			}
 		}
 
-		void Randomize(const float min, const float max) const
+		void Randomize(const T min, const T max) const
 		{
+#if _DEBUG
+			if (min == max) throw std::invalid_argument("min and max cannot be equal to prevent division by zero.");
+#endif
+
 			for (int i = 0; i < m_Size; ++i)
 			{
-				float r = min + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (max - min)));
+				T r = min + static_cast <T> (rand()) / (static_cast <float> (RAND_MAX / (max - min)));
 				m_Data[i] = r;
 			}
 		}
@@ -139,7 +151,7 @@ namespace Elite
 		{
 			return m_Columns;
 		}
-		void MatrixMultiply(const FMatrix& op2, const FMatrix& result) const
+		void MatrixMultiply(const FMatrix<T>& op2, const FMatrix<T>& result) const
 		{
 			const int maxRows = min(GetNrOfRows(), result.GetNrOfRows());
 			const int maxColumns = min(op2.GetNrOfColumns(), result.GetNrOfColumns());
@@ -148,7 +160,7 @@ namespace Elite
 			{
 				for (int c_column = 0; c_column < maxColumns; ++c_column)
 				{
-					float sum = 0;
+					T sum = 0;
 					for (int index = 0; index < GetNrOfColumns(); ++index)
 					{
 						sum += Get(c_row, index) * op2.Get(index, c_column);
@@ -157,7 +169,7 @@ namespace Elite
 				}
 			}
 		}
-		void ScalarMultiply(const float scalar) const
+		void ScalarMultiply(const T scalar) const
 		{
 			for (int i = 0; i < m_Size; ++i) 
 			{
@@ -165,7 +177,7 @@ namespace Elite
 			}
 		}
 
-		void UniformCrossover(FMatrix& other)
+		void UniformCrossover(FMatrix<T>& other)
 		{
 			for (int i = 0; i < m_Size; ++i)
 			{
@@ -176,20 +188,20 @@ namespace Elite
 			}
 		}
 
-		void Copy(const FMatrix& other) const
+		void Copy(const FMatrix<T>& other) const
 		{
 			const int maxRows = min(GetNrOfRows(), other.GetNrOfRows());
 			const int maxColumns = min(GetNrOfColumns(), other.GetNrOfColumns());
 
 			for (int c_row = 0; c_row < maxRows; ++c_row) {
 				for (int c_column = 0; c_column < maxColumns; ++c_column) {
-					const float oVal = other.Get(c_row, c_column);
+					const T oVal = other.Get(c_row, c_column);
 					Set(c_row, c_column, oVal);
 				}
 			}
 		}
 
-		//void Set(const FMatrix& other) const
+		//void Set(const FMatrix<T>& other) const
 		//{
 		//	if (other.m_Size > m_Size)
 		//	{
@@ -199,13 +211,13 @@ namespace Elite
 
 		//	for (int i = 0; i < m_Size; ++i)
 		//	{
-		//		//const float value = 0;//*other.m_Data;
+		//		//const T value = 0;//*other.m_Data;
 		//		//Set(0, i, *other.m_Data);
 		//		m_Data[i] = *other.m_Data;
 		//	}
 		//}
 
-		void Set(const FMatrix* other) const
+		void Set(const FMatrix<T>* other) const
 		{
 			if (other->m_Size > m_Size)
 			{
@@ -215,26 +227,26 @@ namespace Elite
 
 			for (int i = 0; i < m_Size; ++i)
 			{
-				//const float value = 0;//*other.m_Data;
+				//const T value = 0;//*other.m_Data;
 				//Set(0, i, *other.m_Data);
 				m_Data[i] = other->m_Data[i];
 			}
 		}
 
-		//void Add(const FMatrix& other) const
+		//void Add(const FMatrix<T>& other) const
 		//{
 		//	int maxRows = min(GetNrOfRows(), other.GetNrOfRows());
 		//	int maxColumns = min(GetNrOfColumns(), other.GetNrOfColumns());
 
 		//	for (int c_row = 0; c_row < maxRows; ++c_row) {
 		//		for (int c_column = 0; c_column < maxColumns; ++c_column) {
-		//			float oVal = other.Get(c_row, c_column);
-		//			float thisVal = Get(c_row, c_column);
+		//			T oVal = other.Get(c_row, c_column);
+		//			T thisVal = Get(c_row, c_column);
 		//			Set(c_row, c_column, thisVal + oVal);
 		//		}
 		//	}
 		//}
-		void Add(const FMatrix& other) const
+		void Add(const FMatrix<T>& other) const
 		{
 			const int maxRows = std::min(GetNrOfRows(), other.GetNrOfRows());
 			const int maxColumns = std::min(GetNrOfColumns(), other.GetNrOfColumns());
@@ -257,15 +269,15 @@ namespace Elite
 				}
 			}
 		}
-		void FastAdd(const FMatrix& other) const
+		void FastAdd(const FMatrix<T>& other) const
 		{
 			const int maxRows = std::min(GetNrOfRows(), other.GetNrOfRows());
 			const int maxColumns = std::min(GetNrOfColumns(), other.GetNrOfColumns());
 			const int stride = GetNrOfColumns(); // Assuming a row-major layout
 
 			// Using pointers for direct access
-			float* __restrict dataPtr = m_Data; // Assuming m_Data is a float array or pointer
-			const float* __restrict otherDataPtr = other.m_Data;
+			T* __restrict dataPtr = m_Data; // Assuming m_Data is a T array or pointer
+			const T* __restrict otherDataPtr = other.m_Data;
 
 			for (int c_row = 0; c_row < maxRows; ++c_row)
 			{
@@ -279,7 +291,7 @@ namespace Elite
 			}
 		}
 
-		void Subtract(const FMatrix& other) const
+		void Subtract(const FMatrix<T>& other) const
 		{
 			int maxRows = min(GetNrOfRows(), other.GetNrOfRows());
 			int maxColumns = min(GetNrOfColumns(), other.GetNrOfColumns());
@@ -288,8 +300,8 @@ namespace Elite
 			{
 				for (int c_column = 0; c_column < maxColumns; ++c_column) 
 				{
-					float oVal = other.Get(c_row, c_column);
-					float thisVal = Get(c_row, c_column);
+					T oVal = other.Get(c_row, c_column);
+					T thisVal = Get(c_row, c_column);
 					Set(c_row, c_column, thisVal - oVal);
 				}
 			}
@@ -298,41 +310,52 @@ namespace Elite
 		{
 			for (int i = 0; i < m_Size; ++i)
 			{
-				const float val = m_Data[i];
-				m_Data[i] = 1 / (1 + exp(-val));
+#ifdef  _DEBUG
+				const T val = m_Data[i];
+				T res = 1 / (1 + exp(-val));
+				if (isnan(static_cast<float>(res)))
+				{
+					Print();
+					__debugbreak();
+				}
+				m_Data[i] = res;
+#else
+				const T val = m_Data[i];
+				m_Data[i] = static_cast<T>(1 / (1 + exp(-val)));
+#endif //  _DEBUG
 			}
 		}
 
-		float Sum() const
+		T Sum() const
 		{
-			float sum = 0;
+			T sum = 0;
 			for (int i = 0; i < m_Size; ++i)
 			{
 				sum += m_Data[i];
 			}
 			return sum;
 		}
-		float Dot(const FMatrix& op2) const
+		T Dot(const FMatrix<T>& op2) const
 		{
 			int mR = min(GetNrOfRows(), op2.GetNrOfRows());
 			int mC = min(GetNrOfColumns(), op2.GetNrOfColumns());
 
-			float dot = 0;
+			T dot = 0;
 			for (int c_row = 0; c_row < mR; ++c_row) {
 				for (int c_column = 0; c_column < mC; ++c_column) {
-					float v1 = Get(c_row, c_column);
-					float v2 = Get(c_row, c_column);
+					T v1 = Get(c_row, c_column);
+					T v2 = Get(c_row, c_column);
 					dot += v1 * v2;
 				}
 			}
 			return dot;
 		}
-		float Max() const
+		T Max() const
 		{
-			float max = -FLT_MAX;
+			T max = -std::numeric_limits<T>::max();
 			for (int c_row = 0; c_row < m_Rows; ++c_row) {
 				for (int c_column = 0; c_column < m_Columns; ++c_column) {
-					float value = Get(c_row, c_column);
+					T value = Get(c_row, c_column);
 					if (value > max) {
 						max = value;
 					}
@@ -341,12 +364,12 @@ namespace Elite
 			}
 			return max;
 		}
-		float Max(int& r, int& c) const
+		T Max(int& r, int& c) const
 		{
-			float max = -FLT_MAX;
+			T max = -std::numeric_limits<T>::max();
 			for (int c_row = 0; c_row < m_Rows; ++c_row) {
 				for (int c_column = 0; c_column < m_Columns; ++c_column) {
-					const float value = Get(c_row, c_column);
+					const T value = Get(c_row, c_column);
 					if (value > max) {
 						max = value;
 						r = c_row;
@@ -357,12 +380,12 @@ namespace Elite
 			}
 			return max;
 		}
-		float Max(int& r, int& c, int fromCol, int toCol) const
+		T Max(int& r, int& c, int fromCol, int toCol) const
 		{
-			float max = -FLT_MAX;
+			T max = -std::numeric_limits<T>::max();
 			for (int c_row = 0; c_row < m_Rows; ++c_row) {
 				for (int c_column = fromCol; c_column < toCol; ++c_column) {
-					const float value = Get(c_row, c_column);
+					const T value = Get(c_row, c_column);
 					if (value > max) {
 						max = value;
 						r = c_row;
@@ -373,11 +396,11 @@ namespace Elite
 			}
 			return max;
 		}
-		float MaxOfRow(int r) const
+		T MaxOfRow(int r) const
 		{
-			float max = -FLT_MAX;
+			T max = -FLT_MAX;
 			for (int c_column = 0; c_column < m_Columns; ++c_column) {
-				float value = Get(r, c_column);
+				T value = Get(r, c_column);
 				if (value > max) {
 					max = value;
 
@@ -391,7 +414,7 @@ namespace Elite
 		{
 			for (int c_row = 0; c_row < m_Rows; ++c_row) {
 				for (int c_column = 0; c_column < m_Columns; ++c_column) {
-					const float value = Get(c_row, c_column);
+					const T value = Get(c_row, c_column);
 					printf("%.3f\t", value);
 				}
 				printf("\n");
@@ -508,12 +531,12 @@ namespace Elite
 							int column;
 							file >> column;
 							m_Columns = column;
-							m_Data = new float[m_Rows * m_Columns];
+							m_Data = new T[m_Rows * m_Columns];
 							m_Size = m_Rows * m_Columns;
 						}
 						else if (sCommand == "M")
 						{
-							float data;
+							T data;
 							for (int col{0}; col < m_Columns; ++col)
 							{
 								file >> data;
